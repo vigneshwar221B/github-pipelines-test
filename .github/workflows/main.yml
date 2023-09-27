@@ -1,0 +1,25 @@
+name: dynatrace
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Build count
+        uses: dynatrace-oss/dynatrace-github-action@v9
+        with:
+          url: "${{ secrets.DT_URL }}"
+          token: "${{ secrets.DT_TOKEN }}"
+          metrics: |
+            - metric: "github.metric1"
+              value: ${{ github.job }}
+              dimensions:
+                project: "${{ github.repository }}"
+                branch: "${{ github.ref }}"
+                event: "${{ github.event_name }}"
+                owner: vigneshwar
