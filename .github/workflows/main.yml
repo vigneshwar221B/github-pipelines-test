@@ -17,7 +17,7 @@ jobs:
           token: ${{ secrets.DT_TOKEN }}
           metrics: |
             - metric: "github.metric1"
-              value: "smth"
+              value: "${{ github.run_number	 }}"
               dimensions:
                 project: "${{ github.repository }}"
                 branch: "${{ github.ref }}"
