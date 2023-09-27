@@ -13,13 +13,13 @@ jobs:
       - name: Build count
         uses: dynatrace-oss/dynatrace-github-action@v9
         with:
-          url: '${{ secrets.DT_URL }}'
-          token: '${{ secrets.DT_TOKEN }}'
+          url: ${{ secrets.DT_URL }}
+          token: ${{ secrets.DT_TOKEN }}
           metrics: |
             - metric: "github.metric1"
-              value: "${{ github.ref }}"
+              value: ${{ github.ref }}
               dimensions:
-                project: "${{ github.repository }}"
-                branch: "${{ github.ref }}"
-                event: "${{ github.event_name }}"
+                project: ${{ github.repository }}
+                branch: ${{ github.ref }}
+                event: ${{ github.event_name }}
                 owner: vignesh
