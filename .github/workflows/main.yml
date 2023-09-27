@@ -17,9 +17,9 @@ jobs:
           token: '${{ secrets.DT_TOKEN }}'
           metrics: |
             - metric: "github.metric1"
-              value: "1.0"
+              value: "${{ github.job }}"
               dimensions:
                 project: "${{ github.repository }}"
                 branch: "${{ github.ref }}"
                 event: "${{ github.event_name }}"
-                owner: wolfgang
+                owner: vignesh
