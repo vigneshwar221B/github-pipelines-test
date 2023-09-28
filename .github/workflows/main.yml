@@ -10,6 +10,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: build the version
+        shell: bash
+        run: |
+          chmod +x ./scripts/dev-version.sh
+          $output=(./scripts/dev-version.sh)
+          echo "::set-output name=app_version::$output"
+
       - name: Build count
         uses: dynatrace-oss/dynatrace-github-action@v9
         with:
@@ -17,7 +24,7 @@ jobs:
           token: ${{ secrets.DT_TOKEN }}
           metrics: |
             - metric: "github.metric1"
-              value: "${{ github.run_number	 }}"
+              value: "${{ steps.run-script.outputs.app_version }}"
               dimensions:
                 project: "${{ github.repository }}"
                 branch: "${{ github.ref }}"
