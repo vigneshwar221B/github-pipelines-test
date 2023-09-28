@@ -18,7 +18,7 @@ jobs:
         run: |
           chmod +x ./scripts/ver.sh
           result=$(./scripts/ver.sh | awk -F 'ver: *' '{print $2}' | xargs)
-          echo "version=$result"
+          echo "version=$result" >> $GITHUB_OUTPUT
 
       - name: Build count
         uses: dynatrace-oss/dynatrace-github-action@v9
