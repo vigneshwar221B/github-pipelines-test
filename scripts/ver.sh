@@ -1,2 +1,6 @@
 #!/bin/bash
-exit "1.2.1.1"
+echo "more output"
+echo "more output"
+echo "more output"
+echo "more output"
+echo "ver: 1.2.1.1"
