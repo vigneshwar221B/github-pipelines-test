@@ -13,8 +13,8 @@ jobs:
       - name: build the version
         shell: bash
         run: |
-          chmod +x ./scripts/dev-version.sh
-          $output=(./scripts/dev-version.sh)
+          chmod +x ./scripts/ver.sh
+          $output=(./scripts/ver.sh)
           echo "::set-output name=app_version::$output"
 
       - name: Build count
