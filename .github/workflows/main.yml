@@ -17,7 +17,8 @@ jobs:
         shell: bash
         run: |
           chmod +x ./scripts/ver.sh
-          
+          output=(./scripts/ver.sh | awk -F 'ver: *' '{print $2}' | xargs)
+          echo "::set-output name=app_version::$output"
 
       - name: Build count
         uses: dynatrace-oss/dynatrace-github-action@v9
