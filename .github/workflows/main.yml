@@ -18,7 +18,7 @@ jobs:
         run: |
           chmod +x ./scripts/ver.sh
           result=$(./scripts/ver.sh | awk -F 'ver: *' '{print $2}' | xargs)
-          echo "::set-output name=app_version::$result"
+          echo "version=$result"
 
       - name: Build count
         uses: dynatrace-oss/dynatrace-github-action@v9
@@ -27,7 +27,7 @@ jobs:
           token: ${{ secrets.DT_TOKEN }}
           metrics: |
             - metric: "github.metric1"
-              value: "${{ steps.run-script.outputs.app_version }}"
+              value: "${{ steps.run-script.outputs.version }}"
               dimensions:
                 project: "${{ github.repository }}"
                 branch: "${{ github.ref }}"
