@@ -43,7 +43,6 @@ jobs:
           events: |
             - title: "Build succeeded"
               type: CUSTOM_INFO
-              entitySelector: type(host),entityName(myHost)
               properties:
                 description: "Branch ${{ github.ref }} failed to build"
                 source: GitHub
