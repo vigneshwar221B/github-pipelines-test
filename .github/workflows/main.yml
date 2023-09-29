@@ -21,16 +21,33 @@ jobs:
           result=$(./scripts/ver.sh | awk -F 'ver: *' '{print $2}' | xargs)
           echo "version=$result" >> $GITHUB_OUTPUT
 
-      - name: Build count
+      # - name: Build count
+      #   uses: dynatrace-oss/dynatrace-github-action@v9
+      #   with:
+      #     url: ${{ secrets.DT_URL }}
+      #     token: ${{ secrets.DT_TOKEN }}
+      #     metrics: |
+      #       - metric: "github.metric1"
+      #         value: "${{ steps.ver_output.outputs.version }}"
+      #         dimensions:
+      #           project: "${{ github.repository }}"
+      #           branch: "${{ github.ref }}"
+      #           event: "${{ github.event_name }}"
+      #           owner: vignesh
+      
+      - name: Notify Dynatrace on Build Success
         uses: dynatrace-oss/dynatrace-github-action@v9
         with:
-          url: ${{ secrets.DT_URL }}
-          token: ${{ secrets.DT_TOKEN }}
-          metrics: |
-            - metric: "github.metric1"
-              value: "${{ steps.ver_output.outputs.version }}"
-              dimensions:
+          url: '${{ secrets.DT_URL }}'
+          token: '${{ secrets.DT_TOKEN }}'
+          events: |
+            - title: "Build succeeded"
+              type: CUSTOM_INFO
+              entitySelector: type(host),entityName(myHost)
+              properties:
+                description: "Branch ${{ github.ref }} failed to build"
+                source: GitHub
                 project: "${{ github.repository }}"
                 branch: "${{ github.ref }}"
                 event: "${{ github.event_name }}"
-                owner: vignesh
+                owner: ${{ github.repository_owner }}
