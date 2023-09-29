@@ -34,7 +34,7 @@ jobs:
       #           branch: "${{ github.ref }}"
       #           event: "${{ github.event_name }}"
       #           owner: vignesh
-      
+
       - name: Notify Dynatrace on Build Success
         uses: dynatrace-oss/dynatrace-github-action@v9
         with:
@@ -51,3 +51,4 @@ jobs:
                 branch: "${{ github.ref }}"
                 event: "${{ github.event_name }}"
                 owner: ${{ github.repository_owner }}
+                customAttr: "${{ steps.ver_output.outputs.version }}"
