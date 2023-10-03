@@ -3,5 +3,5 @@
 echo "more output"
 echo "more output"
 echo "more output"
-echo "ver: 1.2.3.5"
+echo "ver: 1.2.3.6"
 echo "more output"
