@@ -44,7 +44,7 @@ jobs:
             - title: "Build succeeded"
               type: CUSTOM_INFO
               properties:
-                description: "Branch ${{ github.ref }} failed to build"
+                description: "Branch ${{ github.ref }} build succeded"
                 source: GitHub
                 project: "${{ github.repository }}"
                 branch: "${{ github.ref }}"
