@@ -41,7 +41,7 @@ jobs:
           url: '${{ secrets.DT_URL }}'
           token: '${{ secrets.DT_TOKEN }}'
           events: |
-            - title: "Build succeeded"
+            - title: "Version Build Succeeded"
               type: CUSTOM_INFO
               properties:
                 description: "Branch ${{ github.ref }} build succeded"
@@ -50,4 +50,4 @@ jobs:
                 branch: "${{ github.ref }}"
                 event: "${{ github.event_name }}"
                 owner: ${{ github.repository_owner }}
-                customAttr: "${{ steps.ver_output.outputs.version }}"
+                version: "${{ steps.ver_output.outputs.version }}"
