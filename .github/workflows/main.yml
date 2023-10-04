@@ -12,7 +12,7 @@ jobs:
       - name: Print Message1
         run: echo hi
       - name: Print Message2
-        run: echo $helo
+        run: jhgfd
 
   printb:
     runs-on: ubuntu-latest
