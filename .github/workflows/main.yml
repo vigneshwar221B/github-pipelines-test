@@ -13,6 +13,8 @@ jobs:
         run: echo hi
       - name: Print Message2
         run: jhgfd
+      - name: Print Message2
+        run: echo hello
 
   printb:
     runs-on: ubuntu-latest
