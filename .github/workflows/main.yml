@@ -1,4 +1,4 @@
-name: dynatrace
+name: test
 
 on:
   push:
@@ -6,48 +6,14 @@ on:
       - main
 
 jobs:
-  dyna:
+  print-hi:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
+      - name: Print Hi
+        run: echo "Hi"
 
-      - name: build the version
-        id: ver_output
-        shell: bash
-        run: |
-          chmod +x ./scripts/ver.sh
-          result=$(./scripts/ver.sh | awk -F 'ver: *' '{print $2}' | xargs)
-          echo "version=$result" >> $GITHUB_OUTPUT
-
-      # - name: Build count
-      #   uses: dynatrace-oss/dynatrace-github-action@v9
-      #   with:
-      #     url: ${{ secrets.DT_URL }}
-      #     token: ${{ secrets.DT_TOKEN }}
-      #     metrics: |
-      #       - metric: "github.metric1"
-      #         value: "${{ steps.ver_output.outputs.version }}"
-      #         dimensions:
-      #           project: "${{ github.repository }}"
-      #           branch: "${{ github.ref }}"
-      #           event: "${{ github.event_name }}"
-      #           owner: vignesh
-
-      - name: Notify Dynatrace on Build Success
-        uses: dynatrace-oss/dynatrace-github-action@v9
-        with:
-          url: '${{ secrets.DT_URL }}'
-          token: '${{ secrets.DT_TOKEN }}'
-          events: |
-            - title: "Version Build Succeeded"
-              type: CUSTOM_INFO
-              properties:
-                description: "Branch ${{ github.ref }} build succeded"
-                source: GitHub
-                project: "${{ github.repository }}"
-                branch: "${{ github.ref }}"
-                event: "${{ github.event_name }}"
-                owner: ${{ github.repository_owner }}
-                version: "${{ steps.ver_output.outputs.version }}"
+  print-hello:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print Hello
+        run: echo "Hello"
