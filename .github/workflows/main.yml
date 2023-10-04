@@ -19,5 +19,9 @@ jobs:
   printb:
     runs-on: ubuntu-latest
     steps:
+      - name: custom action
+        uses: ./.github/actions/test
+        with:
+          someVar: helo
       - name: Print Message
         run: echo hello

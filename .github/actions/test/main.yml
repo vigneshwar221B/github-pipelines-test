@@ -1,0 +1,12 @@
+name: custom action
+
+inputs:
+  someVar:
+    default: "hi"
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+  - name: Print Message
+    run: echo ${{ inputs.someVar }}
