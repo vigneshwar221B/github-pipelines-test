@@ -1,7 +1,9 @@
 name: custom action
+description: blah
 
 inputs:
   someVar:
+    description: fad
     default: "hi"
     required: false
 
