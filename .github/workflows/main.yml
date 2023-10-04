@@ -19,6 +19,7 @@ jobs:
   printb:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: custom action
         uses: ./.github/actions/test
         with:
