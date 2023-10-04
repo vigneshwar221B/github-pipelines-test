@@ -6,11 +6,14 @@ on:
       - main
 
 jobs:
-  print:
+  printa:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        message: ["Hi", "Hello"]
     steps:
       - name: Print Message
-        run: echo ${{ matrix.message }}
+        run: echo hi
+
+  printb:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print Message
+        run: echo hello

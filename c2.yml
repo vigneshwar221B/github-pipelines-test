@@ -1,0 +1,91 @@
+  deploy_qa_infra:
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    environment: qa
+    needs: func_test_api_dev
+    if: ${{ github.ref == 'refs/heads/main' }}
+    defaults:
+      run:
+        working-directory: base_infra
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download Lambda Packages
+        uses: actions/download-artifact@v3
+        with:
+          name: lambda-package
+          path: terraform
+      - name: Use Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+          terraform_wrapper: false
+      - name: Terraform Format
+        id: fmt
+        run: terraform fmt -check
+      - name: Set Up Terraform Workspace
+        uses: sorenson-eng/shared-github-actions/create-tf-cloud-workspace@main
+        with:
+          apiToken: ${{ secrets.TF_API_TOKEN }}
+          teamID: team-9oiEbg9n7LRqH8ch
+          terraformWorkspaceName: ${{ github.event.repository.name }}-qa-infra-primary-region
+          tfVarSet: varset-f2C3DJRZHGfvpwdR
+          terraformDir: base_infra
+      - name: Terraform Init
+        id: init
+        run: terraform init
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -var-file=qa-primary.tfvars
+        env:
+          TF_VAR_aws_account_id: '${{ vars.QA_AWS_ACCOUNT_ID}}'
+          TF_VAR_teams_url: ${{ secrets.DEV_QA_MESSENGER_URL}}
+      - name: Terraform Apply
+        env:
+          TF_VAR_aws_account_id: '${{ vars.QA_AWS_ACCOUNT_ID}}'
+          TF_VAR_teams_url: ${{ secrets.DEV_QA_MESSENGER_URL}}
+        id: apply
+        run: terraform apply -var-file=qa-primary.tfvars --auto-approve
+
+      #need to add apply and also terraform outputs
+      - name: Set Up Terraform Workspace
+        uses: sorenson-eng/shared-github-actions/create-tf-cloud-workspace@main
+        with:
+          apiToken: ${{ secrets.TF_API_TOKEN }}
+          teamID: team-9oiEbg9n7LRqH8ch
+          terraformWorkspaceName: ${{ github.event.repository.name }}-qa-infra-secondary-region
+          tfVarSet: varset-f2C3DJRZHGfvpwdR
+          terraformDir: base_infra
+      - name: Terraform Init Secondary Region
+        id: init_secondary_region
+        run: terraform init
+      - name: Terraform Validate Secondary Region
+        id: validate_secondary_region
+        run: terraform validate
+      - name: Terraform Plan Secondary Region
+        id: plan_secondary_region
+        run: terraform plan -var-file=qa-secondary.tfvars
+        env:
+          TF_VAR_aws_account_id: '${{ vars.QA_AWS_ACCOUNT_ID}}'
+          TF_VAR_teams_url: ${{ secrets.DEV_QA_MESSENGER_URL}}
+      - name: Terraform Apply
+        env:
+          TF_VAR_aws_account_id: '${{ vars.QA_AWS_ACCOUNT_ID}}'
+          TF_VAR_teams_url: ${{ secrets.DEV_QA_MESSENGER_URL}}
+        id: apply-qa
+        run: terraform apply -var-file=qa-secondary.tfvars --auto-approve
+
+      - name: Send Chat Fail Notification
+        if: failure()
+        uses: sorenson-eng/shared-github-actions/send-teams-notification@main
+        with:
+          TeamsWebhookUrl: ${{ secrets.MSTEAMS_WEBHOOK }}
+          jobName: '${{ github.job }}'
+          jobUrl: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+          jobRepo: ${{ github.repository }}
+          triggeredBy: '${{ github.actor }}'
