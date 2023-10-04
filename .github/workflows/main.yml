@@ -9,8 +9,10 @@ jobs:
   printa:
     runs-on: ubuntu-latest
     steps:
-      - name: Print Message
+      - name: Print Message1
         run: echo hi
+      - name: Print Message2
+        run: echo $helo
 
   printb:
     runs-on: ubuntu-latest
