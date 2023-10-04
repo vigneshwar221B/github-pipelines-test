@@ -9,4 +9,5 @@ runs:
   using: "composite"
   steps:
   - name: Print Message
+    shell: bash
     run: echo ${{ inputs.someVar }}
