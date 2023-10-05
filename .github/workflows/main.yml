@@ -16,8 +16,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 2
+
       - name: check modified files
         id: check_files
         run: |
@@ -39,10 +38,20 @@ jobs:
     if: needs.check.outputs.run_job == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: checkout code
+        uses: actions/checkout@v3
+
       - name: custom action
         uses: ./.github/actions/test
         with:
           someVar: helo
+
+      - name: Print Message
+        run: echo hello
+  
+  printc:
+    needs: printb
+    runs-on: ubuntu-latest
+    steps:
       - name: Print Message
         run: echo hello
