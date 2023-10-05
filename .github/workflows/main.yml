@@ -6,15 +6,35 @@ on:
       - main
 
 jobs:
-  printa:
+  check:
+    name: Check files in a specific folder
+    outputs:
+      run_job: ${{ steps.check_files.outputs.run_job }}
     runs-on: ubuntu-latest
+    env:
+      DIRECTORY_TO_CHECK: my_directory  # Set the directory to check here
     steps:
-      - name: Print Message1
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
+      - name: check modified files
+        id: check_files
+        run: |
+          echo "=============== list modified files ==============="
+          # Check for changes in the specified directory
+          git diff --name-only HEAD^ HEAD "$DIRECTORY_TO_CHECK/"
+          
+          echo "========== check if there are modified files =========="
+          if [[ -n $(git diff --name-only HEAD^ HEAD "$DIRECTORY_TO_CHECK/") ]]; then
+            echo "There are modified files in the '$DIRECTORY_TO_CHECK' folder."
+            echo "::set-output name=run_job::true"
+          else
+            echo "There are no modified files in the '$DIRECTORY_TO_CHECK' folder."
+            echo "::set-output name=run_job::false"
+          fi
+      - name: this wont run
         run: echo hi
-      - name: Print Message2
-        run: jhgfd
-      - name: Print Message2
-        run: echo hello
 
   printb:
     runs-on: ubuntu-latest
