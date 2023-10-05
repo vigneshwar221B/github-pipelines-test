@@ -12,7 +12,7 @@ jobs:
       run_job: ${{ steps.check_files.outputs.run_job }}
     runs-on: ubuntu-latest
     env:
-      DIRECTORY_TO_CHECK: my_directory  # Set the directory to check here
+      DIRECTORY_TO_CHECK: test # Set the directory to check here
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
