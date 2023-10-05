@@ -5,6 +5,7 @@ on:
     branches:
       - main
 
+      
 jobs:
   check:
     name: Check files in a specific folder
