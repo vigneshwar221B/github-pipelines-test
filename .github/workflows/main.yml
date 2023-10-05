@@ -5,7 +5,6 @@ on:
     branches:
       - main
 
-      
 jobs:
   check:
     name: Check files in a specific folder
@@ -13,7 +12,7 @@ jobs:
       run_job: ${{ steps.check_files.outputs.run_job }}
     runs-on: ubuntu-latest
     env:
-      DIRECTORY_TO_CHECK: test # Set the directory to check here
+      DIRECTORY_TO_CHECK: test 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -29,15 +28,15 @@ jobs:
           echo "========== check if there are modified files =========="
           if [[ -n $(git diff --name-only HEAD^ HEAD "$DIRECTORY_TO_CHECK/") ]]; then
             echo "There are modified files in the '$DIRECTORY_TO_CHECK' folder."
-            echo "::set-output name=run_job::true"
+            echo "run_job=true" >> "$GITHUB_OUTPUT"
           else
             echo "There are no modified files in the '$DIRECTORY_TO_CHECK' folder."
-            echo "::set-output name=run_job::false"
+            echo "run_job=false" >> "$GITHUB_OUTPUT"
           fi
-      - name: this wont run
-        run: echo hi
 
   printb:
+    needs: check
+    if: needs.check.outputs.run_job == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
