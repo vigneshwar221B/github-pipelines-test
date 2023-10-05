@@ -53,7 +53,7 @@ jobs:
   
   printb:
     needs: printa
-    if: ${{ always() }}
+    if: ${{ always() && github.ref == 'refs/heads/main'}}
     runs-on: ubuntu-latest
     steps:
       - name: Print Message
