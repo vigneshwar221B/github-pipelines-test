@@ -53,6 +53,7 @@ jobs:
   
   printc:
     needs: printb
+    if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
       - name: Print Message
