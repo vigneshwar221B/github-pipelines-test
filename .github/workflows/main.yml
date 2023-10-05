@@ -35,7 +35,7 @@ jobs:
             echo "run_job=false" >> "$GITHUB_OUTPUT"
           fi
 
-  printb:
+  printa:
     needs: check
     if: needs.check.outputs.run_job == 'true'
     runs-on: ubuntu-latest
@@ -51,8 +51,8 @@ jobs:
       - name: Print Message
         run: echo hello
   
-  printc:
-    needs: printb
+  printb:
+    needs: printa
     if: ${{ always() }}
     runs-on: ubuntu-latest
     steps:
