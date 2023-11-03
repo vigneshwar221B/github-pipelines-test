@@ -1,0 +1,44 @@
+- name: Set Up Terraform Workspace
+        uses: sorenson-eng/shared-github-actions/create-tf-cloud-workspace@main
+        with:
+          apiToken: ${{ secrets.TF_API_TOKEN }}
+          teamID: team-9oiEbg9n7LRqH8ch
+          terraformWorkspaceName: ${{ github.event.repository.name }}-qa
+          tfVarSet: varset-f2C3DJRZHGfvpwdR
+      - name: Terraform Init
+        id: init
+        run: terraform init
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -var-file=qa-primary.tfvars
+        env:
+          TF_VAR_aws_account_id: '${{ vars.QA_AWS_ACCOUNT_ID}}'
+          TF_VAR_cognito_username: ${{ secrets.COGNITO_SERVICE_ACCOUNT_USERNAME}}
+          TF_VAR_cognito_password: ${{ secrets.COGNITO_SERVICE_ACCOUNT_PASSWORD}}
+      - name: Terraform Apply on primary region
+        id: apply
+        run: terraform apply -var-file=qa-primary.tfvars --auto-approve
+        env:
+          TF_VAR_aws_account_id: '${{ vars.QA_AWS_ACCOUNT_ID}}'
+          TF_VAR_cognito_username: ${{ secrets.COGNITO_SERVICE_ACCOUNT_USERNAME}}
+          TF_VAR_cognito_password: ${{ secrets.COGNITO_SERVICE_ACCOUNT_PASSWORD}}
+      - name: Collect Terraform Outputs for primary region
+        id: tf_output
+        run: |
+          echo "api_url=$(terraform output api_gateway_canonical_url)" >> $GITHUB_OUTPUT
+          echo "aws_region=$(terraform output --raw aws_region)" >> $GITHUB_OUTPUT
+          echo "aws_account_id=$(terraform output --raw aws_account_id)" >> $GITHUB_OUTPUT
+          echo "cognito_details_ssm_name=$(terraform output --raw cognito_details_ssm_name)" >> $GITHUB_OUTPUT
+          echo "api_automation_phone_number_ssm_name=$(terraform output --raw api_automation_phone_number_ssm_param_name)" >> $GITHUB_OUTPUT
+          echo "dtmf_test_sma_lambda_handler_name=$(terraform output --raw dtmf_test_sma_lambda_handler_name)" >> $GITHUB_OUTPUT
+          echo "sma_handler_lambda_name=$(terraform output --raw sma_handler_lambda_name)" >> $GITHUB_OUTPUT
+          echo "sip_rule_ssm_param=$(terraform output --raw sip_rule_ssm_param)" >> $GITHUB_OUTPUT
+          echo "dtmf_automation_dynamodb_name=$(terraform output --raw dtmf_automation_dynamodb_name)" >> $GITHUB_OUTPUT
+          echo "switchboard_dynamodb_name=$(terraform output --raw switchboard_dynamodb_name)" >> $GITHUB_OUTPUT
+          echo "primary_region_url=$(terraform output --raw custom_domain_url)" >> $GITHUB_OUTPUT
+          echo "primary_region_invoke_url=$(terraform output --raw api_gateway_invoke_url)" >> $GITHUB_OUTPUT
+          echo "us_east_1_synthetic_health_check_id=$(terraform output --raw synthetic_health_check_id)" >> $GITHUB_OUTPUT
+      
