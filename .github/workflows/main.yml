@@ -85,8 +85,8 @@ jobs:
   job1:
     runs-on: ubuntu-latest
     outputs:
-      out1: ${{ steps.tf_output.outputs.type_dev }}
-      out2: ${{ steps.tf_output.outputs.type_prod }}
+      out1: ${{ steps.tf_output.outputs.smth1 }}
+      out2: ${{ steps.tf_output.outputs.amth2 }}
     strategy:
       matrix:
         include:
@@ -96,4 +96,17 @@ jobs:
       - name: smth-matrix
         id: tf_output
         run: |
-          echo "type_${{ matrix.env }}=${{ matrix.env }}" >> $GITHUB_OUTPUT
+          if(${{ matrix.env }} -eq "dev"){
+            echo "smth1=${{ matrix.env }}" >> $GITHUB_OUTPUT
+          }
+          if(${{ matrix.env }} -eq "prod"){
+            echo "smth2=${{ matrix.env }}" >> $GITHUB_OUTPUT
+          }
+  job2:
+    runs-on: ubuntu-latest
+    needs: job1
+    steps:
+      - run: |
+          echo ${{needs.job1.outputs.out1}}
+          echo ${{needs.job1.outputs.out2}}
+
