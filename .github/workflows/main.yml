@@ -86,7 +86,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       out1: ${{ steps.tf_output.outputs.smth1 }}
-      out2: ${{ steps.tf_output.outputs.amth2 }}
+      out2: ${{ steps.tf_output.outputs.smth2 }}
     strategy:
       matrix:
         include:
