@@ -96,10 +96,10 @@ jobs:
       - name: smth-matrix
         id: tf_output
         run: |
-          if(${{ matrix.env }} -eq "dev"){
+          if("${{ matrix.env }}" -eq "dev"){
             echo "smth1=${{ matrix.env }}" >> $GITHUB_OUTPUT
           }
-          if(${{ matrix.env }} -eq "prod"){
+          if("${{ matrix.env }}" -eq "prod"){
             echo "smth2=${{ matrix.env }}" >> $GITHUB_OUTPUT
           }
   job2:
