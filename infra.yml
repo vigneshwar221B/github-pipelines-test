@@ -1,0 +1,62 @@
+  deploy_dev_infra:
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    environment: dev
+    needs: [build, check]
+    if: ${{ needs.check.outputs.run_job == 'true' && github.ref == 'refs/heads/main' }}
+    strategy:
+      matrix:
+        include:
+          - region: "primary"
+          - region: "secondary"
+
+    defaults:
+      run:
+        working-directory: base_infra
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download Lambda Packages
+        uses: actions/download-artifact@v3
+        with:
+          name: lambda-package
+          path: terraform
+      - name: Use Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+          terraform_wrapper: false
+      - name: Terraform Format
+        id: fmt
+        run: terraform fmt -check
+      - name: Set Up Terraform Workspace
+        uses: sorenson-eng/shared-github-actions/create-tf-cloud-workspace@main
+        with:
+          apiToken: ${{ secrets.TF_API_TOKEN }}
+          teamID: team-9oiEbg9n7LRqH8ch
+          terraformWorkspaceName: ${{ github.event.repository.name }}-dev-infra-${{ matrix.region }}-region
+          tfVarSet: varset-f2C3DJRZHGfvpwdR
+          terraformDir: base_infra
+      - name: Terraform Init
+        id: init
+        run: terraform init
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate
+      - name: Terraform Apply
+        id: apply
+        run: terraform apply -var-file=dev-${{ matrix.region }}.tfvars --auto-approve
+        env:
+          TF_VAR_aws_account_id: '${{ vars.DEV_AWS_ACCOUNT_ID}}'
+          TF_VAR_teams_url: ${{ secrets.DEV_QA_MESSENGER_URL}}
+      - name: Send Chat Fail Notification
+        if: failure()
+        uses: sorenson-eng/shared-github-actions/send-teams-notification@main
+        with:
+          TeamsWebhookUrl: ${{ secrets.MSTEAMS_WEBHOOK }}
+          jobName: '${{ github.job }}'
+          jobUrl: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+          jobRepo: ${{ github.repository }}
+          triggeredBy: '${{ github.actor }}'
