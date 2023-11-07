@@ -290,8 +290,6 @@ jobs:
           teams_url: ${{ secrets.DEV_QA_MESSENGER_URL }}
           account_id: ${{ vars.DEV_AWS_ACCOUNT_ID }}
 
-      
-  
   deploy_dev_mr:
     permissions:
       contents: read

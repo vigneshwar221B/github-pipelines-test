@@ -1,10 +1,18 @@
 name: deploy infra
 description: deploys the base infra
 
+inputs:
+  env:
+    description: qewrf
+    required: true
+
 outputs:
-  region:
+  dev_region:
     description: "werfeafc"
-    value: ${{ steps.tf_output.outputs.region }}
+    value: ${{ steps.tf_output.outputs.dev_region }}
+  prod_region:
+    description: "werqwefcfeafc"
+    value: ${{ steps.tf_output.outputs.prod_region }}
 
 runs:
   using: "composite"
@@ -12,4 +20,4 @@ runs:
     - name: set op
       id: tf_output
       shell: bash
-      run: echo "region=blah" >> $GITHUB_OUTPUT
+      run: echo "${{ inputs.env }}_region=blah" >> $GITHUB_OUTPUT
