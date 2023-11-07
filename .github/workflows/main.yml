@@ -37,12 +37,16 @@ jobs:
   
   job1:
     runs-on: ubuntu-latest
+    outputs:
+      region: ${{ steps.set_output.outputs.region }}
     steps:
       - uses: actions/checkout@v3
       - name: custom action
         id: tf_output
         uses: ./.github/actions/test
-      - run: |
+      - id: set_output
+        run: |
+          echo region: ${{steps.tf_output.outputs.region}}
           echo "region=${{steps.tf_output.outputs.region}}" >> $GITHUB_OUTPUT
   job2:
     needs: job1
