@@ -12,4 +12,4 @@ runs:
     - name: set op
       id: tf_output
       shell: bash
-      run: echo "region=blah">>$GITHUB_OUTPUT
+      run: echo "region=blah" >> $GITHUB_OUTPUT
