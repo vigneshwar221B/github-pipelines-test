@@ -40,12 +40,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: custom action
+        id: tf_output
         uses: ./.github/actions/test
   job2:
     needs: job1
     runs-on: ubuntu-latest
     steps:
-      - run: echo ${{needs.job1.outputs.region}}
+      - run: echo ${{needs.job1.tf_output.outputs.region}}
         
   # base_infra:
   #   needs: check
