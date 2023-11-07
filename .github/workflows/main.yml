@@ -39,8 +39,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: will run
-        run: cat file.txt
-        working-directory: base_infra
+        run: cat ./file.txt
+        working-directory: ./base_infra
         
   # base_infra:
   #   needs: check
