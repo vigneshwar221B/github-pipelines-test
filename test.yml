@@ -249,6 +249,20 @@ jobs:
     environment: dev
     needs: [build, folder_changes]
     if: ${{ github.ref == 'refs/heads/main'}}
+    outputs:
+      api_url: ${{ steps.tf_output.outputs.api_url }}
+      aws_region: ${{steps.tf_output.outputs.aws_region}}
+      aws_account_id: ${{ steps.tf_output.outputs.aws_account_id }}
+      cognito_details_ssm_name: ${{ steps.tf_output.outputs.cognito_details_ssm_name}}
+      api_automation_phone_number_ssm_name: ${{ steps.tf_output.outputs.api_automation_phone_number_ssm_name }}
+      dtmf_test_sma_lambda_handler_name: ${{ steps.tf_output.outputs.dtmf_test_sma_lambda_handler_name }}
+      sma_handler_lambda_name: ${{ steps.tf_output.outputs.sma_handler_lambda_name }}
+      sip_rule_ssm_param: ${{ steps.tf_output.outputs.sip_rule_ssm_param }}
+      dtmf_automation_dynamodb_name: ${{ steps.tf_output.outputs.dtmf_automation_dynamodb_name }}
+      switchboard_dynamodb_name: ${{ steps.tf_output.outputs.switchboard_dynamodb_name }}
+      primary_region_url: ${{ steps.tf_output.outputs.primary_region_url }}
+      primary_region_invoke_url: ${{ steps.tf_output.outputs.primary_region_invoke_url }}
+      english_fast_vrs_number: ${{steps.tf_output.outputs.english_fast_vrs_number}}
     strategy:
       matrix:
         include:
@@ -275,6 +289,8 @@ jobs:
           env: ${{ matrix.env }}
           teams_url: ${{ secrets.DEV_QA_MESSENGER_URL }}
           account_id: ${{ vars.DEV_AWS_ACCOUNT_ID }}
+
+      
   
   deploy_dev_mr:
     permissions:
