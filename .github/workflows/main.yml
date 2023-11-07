@@ -42,11 +42,13 @@ jobs:
       - name: custom action
         id: tf_output
         uses: ./.github/actions/test
+      - run: |
+          echo "region=${{steps.tf_output.outputs.region}}" >> $GITHUB_OUTPUT
   job2:
     needs: job1
     runs-on: ubuntu-latest
     steps:
-      - run: echo ${{needs.job1.tf_output.outputs.region}}
+      - run: echo ${{needs.job1.outputs.region}}
         
   # base_infra:
   #   needs: check
