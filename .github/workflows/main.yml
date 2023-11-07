@@ -6,35 +6,45 @@ on:
       - main
 
 jobs:
-  # check:
-  #   name: Check files in a specific folder
-  #   outputs:
-  #     run_job: ${{ steps.check_files.outputs.run_job }}
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     DIRECTORY_TO_CHECK: base_infra 
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v2
-  #       with:
-  #         fetch-depth: 2
+  check:
+    name: Check files in a specific folder
+    outputs:
+      run_job: ${{ steps.check_files.outputs.run_job }}
+    runs-on: ubuntu-latest
+    env:
+      DIRECTORY_TO_CHECK: base_infra 
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
 
-  #     - name: check modified files
-  #       id: check_files
-  #       run: |
-  #         echo "=============== list modified files ==============="
-  #         # Check for changes in the specified directory
-  #         git diff --name-only HEAD^ HEAD "$DIRECTORY_TO_CHECK/"
+      - name: check modified files
+        id: check_files
+        run: |
+          echo "=============== list modified files ==============="
+          # Check for changes in the specified directory
+          git diff --name-only HEAD^ HEAD "$DIRECTORY_TO_CHECK/"
           
-  #         echo "========== check if there are modified files =========="
-  #         if [[ -n $(git diff --name-only HEAD^ HEAD "$DIRECTORY_TO_CHECK/") ]]; then
-  #           echo "There are modified files in the '$DIRECTORY_TO_CHECK' folder."
-  #           echo "run_job=true" >> "$GITHUB_OUTPUT"
-  #         else
-  #           echo "There are no modified files in the '$DIRECTORY_TO_CHECK' folder."
-  #           echo "run_job=false" >> "$GITHUB_OUTPUT"
-  #         fi
-
+          echo "========== check if there are modified files =========="
+          if [[ -n $(git diff --name-only HEAD^ HEAD "$DIRECTORY_TO_CHECK/") ]]; then
+            echo "There are modified files in the '$DIRECTORY_TO_CHECK' folder."
+            echo "run_job=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "There are no modified files in the '$DIRECTORY_TO_CHECK' folder."
+            echo "run_job=false" >> "$GITHUB_OUTPUT"
+          fi
+  
+  job1:
+    runs-on: ubuntu-latest
+    needs: check
+    steps:
+      - name: wont run
+        if: needs.check.outputs.run_job == 'true' 
+        run: |
+          echo hello
+      - name: will run
+        run: echo hi
   # base_infra:
   #   needs: check
   #   if: needs.check.outputs.run_job == 'true' 
@@ -82,31 +92,30 @@ jobs:
   #   steps:
   #     - run: echo ${{matrix.env}}
   
-  job1:
-    runs-on: ubuntu-latest
-    outputs:
-      out1: ${{ steps.tf_output.outputs.smth1 }}
-      out2: ${{ steps.tf_output.outputs.smth2 }}
-    strategy:
-      matrix:
-        include:
-          - env: "dev"
-          - env: "prod"
-    steps:
-      - name: smth-matrix
-        id: tf_output
-        run: |
-          if [ ${{ matrix.env }} == "dev" ]; then
-            echo "smth1=${{ matrix.env }}" >> $GITHUB_OUTPUT
-          fi
-          if [ ${{ matrix.env }} == "prod" ]; then
-            echo "smth2=${{ matrix.env }}" >> $GITHUB_OUTPUT
-          fi
-  job2:
-    runs-on: ubuntu-latest
-    needs: job1
-    steps:
-      - run: |
-          echo ${{needs.job1.outputs.out1}}
-          echo ${{needs.job1.outputs.out2}}
-
+  # job1:
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     out1: ${{ steps.tf_output.outputs.smth1 }}
+  #     out2: ${{ steps.tf_output.outputs.smth2 }}
+  #   strategy:
+  #     matrix:
+  #       include:
+  #         - env: "dev"
+  #         - env: "prod"
+  #   steps:
+  #     - name: smth-matrix
+  #       id: tf_output
+  #       run: |
+  #         if [ ${{ matrix.env }} == "dev" ]; then
+  #           echo "smth1=${{ matrix.env }}" >> $GITHUB_OUTPUT
+  #         fi
+  #         if [ ${{ matrix.env }} == "prod" ]; then
+  #           echo "smth2=${{ matrix.env }}" >> $GITHUB_OUTPUT
+  #         fi
+  # job2:
+  #   runs-on: ubuntu-latest
+  #   needs: job1
+  #   steps:
+  #     - run: |
+  #         echo ${{needs.job1.outputs.out1}}
+  #         echo ${{needs.job1.outputs.out2}}
