@@ -1,0 +1,158 @@
+name: deploy 
+description: deploys the infra
+
+inputs:
+  region:
+    description: region
+    required: true
+  env:
+    description: environment
+    required: true
+  account_id:
+    description: aws account id
+    required: true
+  teams_url:
+    description: url for teams messenger
+    required: true
+
+outputs:
+  api_url:
+    description: "API URL"
+    value: ${{ steps.tf_output.outputs.api_url }}
+  aws_region:
+    description: "AWS Region"
+    value: ${{ steps.tf_output.outputs.aws_region }}
+  aws_account_id:
+    description: "AWS Account ID"
+    value: ${{ steps.tf_output.outputs.aws_account_id }}
+  cognito_details_ssm_name:
+    description: "Cognito Details SSM Name"
+    value: ${{ steps.tf_output.outputs.cognito_details_ssm_name }}
+  api_automation_phone_number_ssm_name:
+    description: "API Automation Phone Number SSM Name"
+    value: ${{ steps.tf_output.outputs.api_automation_phone_number_ssm_name }}
+  dtmf_test_sma_lambda_handler_name:
+    description: "DTMF Test SMA Lambda Handler Name"
+    value: ${{ steps.tf_output.outputs.dtmf_test_sma_lambda_handler_name }}
+  sma_handler_lambda_name:
+    description: "SMA Handler Lambda Name"
+    value: ${{ steps.tf_output.outputs.sma_handler_lambda_name }}
+  sip_rule_ssm_param:
+    description: "SIP Rule SSM Parameter"
+    value: ${{ steps.tf_output.outputs.sip_rule_ssm_param }}
+  dtmf_automation_dynamodb_name:
+    description: "DTMF Automation DynamoDB Name"
+    value: ${{ steps.tf_output.outputs.dtmf_automation_dynamodb_name }}
+  switchboard_dynamodb_name:
+    description: "Switchboard DynamoDB Name"
+    value: ${{ steps.tf_output.outputs.switchboard_dynamodb_name }}
+  primary_region_url:
+    description: "Primary Region URL"
+    value: ${{ steps.tf_output.outputs.primary_region_url }}
+  primary_region_invoke_url:
+    description: "Primary Region Invoke URL"
+    value: ${{ steps.tf_output.outputs.primary_region_invoke_url }}
+  english_fast_vrs_number:
+    description: "English Fast VRS Number"
+    value: ${{ steps.tf_output.outputs.english_fast_vrs_number }}
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v3
+    - name: Download Lambda Packages
+      uses: actions/download-artifact@v3
+      with:
+        name: lambda-package
+        path: terraform
+    - name: Download Synthetics Packages
+      uses: actions/download-artifact@v3
+      with:
+        name: synthetics-package
+        path: terraform
+    - name: Use Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+        terraform_wrapper: false
+    - name: Terraform Format
+      shell: bash
+      id: fmt
+      run: terraform fmt -check
+    - name: Set Up Terraform Workspace
+      uses: sorenson-eng/shared-github-actions/create-tf-cloud-workspace@main
+      with:
+        apiToken: ${{ secrets.TF_API_TOKEN }}
+        teamID: team-9oiEbg9n7LRqH8ch
+        terraformWorkspaceName: ${{ github.event.repository.name }}-${{inputs.env}}${{ inputs.region == "primary" && "" || "-secondary" }}
+        tfVarSet: varset-f2C3DJRZHGfvpwdR
+    - name: Terraform Init
+      shell: bash
+      id: init
+      run: terraform init
+    - name: Terraform Validate
+      shell: bash
+      id: validate
+      run: terraform validate
+    - name: Terraform Plan
+      shell: bash
+      id: plan
+      run: terraform plan -var-file=${{inputs.env}}-${{ inputs.region }}.tfvars
+      env:
+        TF_VAR_aws_account_id: '${{ inputs.aws_account_id}}'
+        TF_VAR_cognito_username: ${{ secrets.COGNITO_SERVICE_ACCOUNT_USERNAME}}
+        TF_VAR_cognito_password: ${{ secrets.COGNITO_SERVICE_ACCOUNT_PASSWORD}}
+        TF_VAR_teams_url: ${{ inputs.teams_url}}
+        TF_VAR_dt_connection_auth_token: ${{ secrets.DT_CONNECTION_AUTH_TOKEN }}
+    - name: Terraform Apply on ${{ inputs.region }} region
+      shell: bash
+      id: apply
+      run: terraform apply -var-file=${{inputs.env}}-${{ inputs.region }}.tfvars --auto-approve
+      env:
+        TF_VAR_aws_account_id: '${{ inputs.aws_account_id}}'
+        TF_VAR_cognito_username: ${{ secrets.COGNITO_SERVICE_ACCOUNT_USERNAME}}
+        TF_VAR_cognito_password: ${{ secrets.COGNITO_SERVICE_ACCOUNT_PASSWORD}}
+        TF_VAR_teams_url: ${{ inputs.teams_url}}
+        TF_VAR_dt_connection_auth_token: ${{ secrets.DT_CONNECTION_AUTH_TOKEN }}
+    - name: Collect Terraform Outputs for ${{ inputs.region }} region
+      shell: bash
+      id: tf_output
+      run: |
+          if [ ${{ inputs.region }} == "primary" ]; then
+            echo "api_url=$(terraform output api_gateway_canonical_url)" >> $GITHUB_OUTPUT
+            echo "aws_region=$(terraform output --raw aws_region)" >> $GITHUB_OUTPUT
+            echo "aws_account_id=$(terraform output --raw aws_account_id)" >> $GITHUB_OUTPUT
+            echo "cognito_details_ssm_name=$(terraform output --raw cognito_details_ssm_name)" >> $GITHUB_OUTPUT
+            echo "api_automation_phone_number_ssm_name=$(terraform output --raw api_automation_phone_number_ssm_param_name)" >> $GITHUB_OUTPUT
+            echo "dtmf_test_sma_lambda_handler_name=$(terraform output --raw dtmf_test_sma_lambda_handler_name)" >> $GITHUB_OUTPUT
+            echo "sma_handler_lambda_name=$(terraform output --raw sma_handler_lambda_name)" >> $GITHUB_OUTPUT
+            echo "sip_rule_ssm_param=$(terraform output --raw sip_rule_ssm_param)" >> $GITHUB_OUTPUT
+            echo "dtmf_automation_dynamodb_name=$(terraform output --raw dtmf_automation_dynamodb_name)" >> $GITHUB_OUTPUT
+            echo "switchboard_dynamodb_name=$(terraform output --raw switchboard_dynamodb_name)" >> $GITHUB_OUTPUT
+            echo "primary_region_url=$(terraform output --raw custom_domain_url)" >> $GITHUB_OUTPUT
+            echo "primary_region_invoke_url=$(terraform output --raw api_gateway_invoke_url)" >> $GITHUB_OUTPUT
+            echo "us_east_1_synthetic_health_check_id=$(terraform output --raw synthetic_health_check_id)" >> $GITHUB_OUTPUT
+            echo "primary_websocket_url=$(terraform output --raw websocket_url)" >> $GITHUB_OUTPUT
+            echo "websocket_domain_name=$(terraform output --raw websocket_domain_name)" >> $GITHUB_OUTPUT
+            echo "english_fast_vrs_number=$(terraform output --raw english_fast_vrs_number)" >> $GITHUB_OUTPUT
+          fi
+          if [ ${{ inputs.region }} == "secondary" ]; then
+            echo "secondary_region_url=$(terraform output --raw custom_domain_url)" >> $GITHUB_OUTPUT
+            echo "hosted_zone_id=$(terraform output --raw hosted_zone_id)" >> $GITHUB_OUTPUT
+            echo "domain_name=$(terraform output --raw domain_name)" >> $GITHUB_OUTPUT
+            echo "environment=$(terraform output --raw environment)" >> $GITHUB_OUTPUT
+            echo "us_west_2_synthetic_health_check_id=$(terraform output --raw synthetic_health_check_id)" >> $GITHUB_OUTPUT
+            echo "aws_region=$(terraform output --raw aws_region)" >> $GITHUB_OUTPUT
+            echo "secondary_websocket_url=$(terraform output --raw websocket_url)" >> $GITHUB_OUTPUT
+          fi
+        
+    - name: Send Chat Fail Notification
+      if: failure()
+      uses: sorenson-eng/shared-github-actions/send-teams-notification@main
+      with:
+        TeamsWebhookUrl: ${{ secrets.MSTEAMS_WEBHOOK }}
+        jobName: '${{ github.job }}'
+        jobUrl: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+        jobRepo: ${{ github.repository }}
+        triggeredBy: '${{ github.actor }}'

@@ -1,0 +1,80 @@
+name: deploy infra
+description: deploys the base infra
+
+inputs:
+  region:
+    description: region
+    required: true
+  env:
+    description: environment
+    required: true
+  aws_account_id:
+    description: aws account id
+    required: true
+  teams_url:
+    description: url for teams messenger
+    required: true
+    
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v3
+    - name: Download Lambda Packages
+      uses: actions/download-artifact@v3
+      with:
+        name: lambda-package
+        path: terraform
+    - name: Use Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+        terraform_wrapper: false
+    - name: Terraform Format
+      id: fmt
+      shell: bash
+      run: terraform fmt -check
+      working-directory: base_infra
+    - name: Set Up Terraform Workspace
+      uses: sorenson-eng/shared-github-actions/create-tf-cloud-workspace@main
+      with:
+        apiToken: ${{ secrets.TF_API_TOKEN }}
+        teamID: team-9oiEbg9n7LRqH8ch
+        terraformWorkspaceName: ${{ github.event.repository.name }}-${{inputs.env}}-infra-${{ inputs.region }}-region
+        tfVarSet: varset-f2C3DJRZHGfvpwdR
+        terraformDir: base_infra
+    - name: Terraform Init
+      shell: bash
+      id: init
+      run: terraform init
+      working-directory: base_infra
+    - name: Terraform Validate
+      shell: bash
+      id: validate
+      run: terraform validate
+      working-directory: base_infra
+    - name: Terraform Plan
+      shell: bash
+      id: plan
+      run: terraform plan -var-file=${{inputs.env}}-${{ inputs.region }}.tfvars
+      working-directory: base_infra
+      env:
+        TF_VAR_aws_aws_account_id: '${{ inputs.aws_account_id}}'
+        TF_VAR_teams_url: ${{ inputs.teams_url}}
+    - name: Terraform Apply
+      shell: bash
+      id: apply
+      run: terraform apply -var-file=${{inputs.env}}-${{ inputs.region }}.tfvars --auto-approve
+      working-directory: base_infra
+      env:
+        TF_VAR_aws_aws_account_id: '${{ inputs.aws_account_id}}'
+        TF_VAR_teams_url: ${{ inputs.teams_url}}
+    - name: Send Chat Fail Notification
+      if: ${{failure() && needs.folder_changes.outputs.run_job == true}}
+      uses: sorenson-eng/shared-github-actions/send-teams-notification@main
+      with:
+        TeamsWebhookUrl: ${{ secrets.MSTEAMS_WEBHOOK }}
+        jobName: '${{ github.job }}'
+        jobUrl: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+        jobRepo: ${{ github.repository }}
+        triggeredBy: '${{ github.actor }}'

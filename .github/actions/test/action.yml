@@ -1,15 +1,15 @@
-name: custom action
-description: blah
+name: deploy infra
+description: deploys the base infra
 
-inputs:
-  someVar:
-    description: fad
-    default: "hi"
-    required: false
+outputs:
+  region:
+    description: "werfeafc"
+    value: ${{ steps.tf_output.outputs.api_url }}
 
 runs:
   using: "composite"
   steps:
-  - name: Print Message
-    shell: bash
-    run: echo ${{ inputs.someVar }}
+    - name: set op
+      id: tf_output
+      shell: bash
+      run: echo "region=blah">>$GITHUB_OUTPUT

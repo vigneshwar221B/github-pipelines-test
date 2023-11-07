@@ -1,0 +1,150 @@
+name: deploy multi region setup
+description: deploys the multi region setup
+
+inputs:
+  region:
+    description: region
+    required: true
+  env:
+    description: environment
+    required: true
+  aws_account_id:
+    description: account id for the aws account
+    required: true
+  teams_url:
+    description: url for teams messenger
+    required: true
+  provider_region:
+    description: "Provider Region"
+    required: true
+  primary_region_url:
+    description: "Primary Region URL"
+    required: true
+  secondary_region_url:
+    description: "Secondary Region URL"
+    required: true
+  hosted_zone_id:
+    description: "Hosted Zone ID"
+    required: true
+  domain_name:
+    description: "Domain Name"
+    required: true
+  environment:
+    description: "Environment"
+    required: true
+  cognito_username:
+    description: "Cognito Username"
+    required: true
+  cognito_password:
+    description: "Cognito Password"
+    required: true
+  region_1_health_check_id:
+    description: "Region 1 Health Check ID"
+    required: true
+  region_2_health_check_id:
+    description: "Region 2 Health Check ID"
+    required: true
+  primary_region:
+    description: "Primary Region"
+    required: true
+  secondary_region:
+    description: "Secondary Region"
+    required: true
+  primary_websocket_url:
+    description: "Primary Websocket URL"
+    required: true
+  secondary_websocket_url:
+    description: "Secondary Websocket URL"
+    required: true
+  websocket_domain_name:
+    description: "Websocket Domain Name"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v3
+    - name: Download Lambda Packages
+      uses: actions/download-artifact@v3
+      with:
+        name: lambda-package
+        path: terraform
+    - name: Use Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+        terraform_wrapper: false
+    - name: Terraform Format
+      id: fmt
+      shell: bash
+      run: terraform fmt -check
+      working-directory: terraform/multi-region
+    - name: Set Up Terraform Workspace for Multi Region
+      uses: sorenson-eng/shared-github-actions/create-tf-cloud-workspace@main
+      with:
+        apiToken: ${{ secrets.TF_API_TOKEN }}
+        teamID: team-9oiEbg9n7LRqH8ch
+        terraformWorkspaceName: ${{ github.event.repository.name }}-${{ inputs.env }}-${{ inputs.region }}
+        tfVarSet: varset-f2C3DJRZHGfvpwdR
+        terraformDir: terraform/multi-region
+    - name: Terraform Init for Multi region
+      shell: bash
+      id: init_mr
+      run: terraform init
+      working-directory: terraform/multi-region
+    - name: Terraform Plan for Multi region
+      shell: bash
+      id: plan_mr
+      run: terraform plan
+      working-directory: terraform/multi-region
+      env:
+        TF_VAR_aws_account_id: '${{ inputs.aws_account_id}}'
+        TF_VAR_provider_region: '${{ inputs.aws_region}}'
+        TF_VAR_primary_region_url: '${{ inputs.primary_region_url }}'
+        TF_VAR_secondary_region_url: '${{ inputs.secondary_region_url }}'
+        TF_VAR_hosted_zone_id: '${{ inputs.hosted_zone_id }}'
+        TF_VAR_domain_name: '${{ inputs.domain_name}}'
+        TF_VAR_environment: '${{ inputs.environment }}'
+        TF_VAR_cognito_username: ${{ inputs.cognito_username}
+        TF_VAR_cognito_password: ${{ inputs.cognito_password}}
+        TF_VAR_teams_url: ${{ inputs.teams_url}}
+        TF_VAR_region_1_health_check_id: ${{ inputs.us_east_1_synthetic_health_check_id }}
+        TF_VAR_region_2_health_check_id: ${{ inputs.us_west_2_synthetic_health_check_id }}
+        TF_VAR_primary_region: ${{ inputs.aws_region }}
+        TF_VAR_secondary_region: ${{ inputs.secondary_region }}
+        TF_VAR_primary_websocket_url: ${{ inputs.primary_websocket_url }}
+        TF_VAR_secondary_websocket_url: ${{ inputs.secondary_websocket_url }}
+        TF_VAR_websocket_domain_name: ${{ inputs.websocket_domain_name }}
+    - name: Terraform Apply for Multi region
+      shell: bash
+      id: apply_mr
+      run: terraform apply --auto-approve
+      working-directory: terraform/multi-region
+      env:
+        TF_VAR_aws_account_id: '${{ inputs.aws_account_id}}'
+        TF_VAR_provider_region: '${{ inputs.aws_region}}'
+        TF_VAR_primary_region_url: '${{ inputs.primary_region_url }}'
+        TF_VAR_secondary_region_url: '${{ inputs.secondary_region_url }}'
+        TF_VAR_hosted_zone_id: '${{ inputs.hosted_zone_id }}'
+        TF_VAR_domain_name: '${{ inputs.domain_name}}'
+        TF_VAR_environment: '${{ inputs.environment }}'
+        TF_VAR_cognito_username: ${{ inputs.cognito_username}
+        TF_VAR_cognito_password: ${{ inputs.cognito_password}}
+        TF_VAR_teams_url: ${{ inputs.teams_url}}
+        TF_VAR_region_1_health_check_id: ${{ inputs.us_east_1_synthetic_health_check_id }}
+        TF_VAR_region_2_health_check_id: ${{ inputs.us_west_2_synthetic_health_check_id }}
+        TF_VAR_primary_region: ${{ inputs.aws_region }}
+        TF_VAR_secondary_region: ${{ inputs.aws_region }}
+        TF_VAR_primary_websocket_url: ${{ inputs.primary_websocket_url }}
+        TF_VAR_secondary_websocket_url: ${{ inputs.secondary_websocket_url }}
+        TF_VAR_websocket_domain_name: ${{ inputs.websocket_domain_name }}
+    - name: Send Chat Fail Notification
+      if: failure()
+      uses: sorenson-eng/shared-github-actions/send-teams-notification@main
+      with:
+        TeamsWebhookUrl: ${{ secrets.MSTEAMS_WEBHOOK }}
+        jobName: '${{ github.job }}'
+        jobUrl: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+        jobRepo: ${{ github.repository }}
+        triggeredBy: '${{ github.actor }}'

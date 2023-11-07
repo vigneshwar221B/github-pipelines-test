@@ -340,9 +340,6 @@ jobs:
     environment: dev
     needs: deploy_dev_infra
     if: ${{ github.ref == 'refs/heads/main' }}
-    defaults:
-      run:
-        working-directory: terraform
     outputs:
       api_url: ${{ steps.tf_output.outputs.api_url }}
       aws_region: ${{steps.tf_output.outputs.aws_region}}
@@ -378,6 +375,7 @@ jobs:
       - name: Terraform Format
         id: fmt
         run: terraform fmt -check
+        working-directory: terraform
       - name: Set Up Terraform Workspace
         uses: sorenson-eng/shared-github-actions/create-tf-cloud-workspace@main
         with:
@@ -385,15 +383,19 @@ jobs:
           teamID: team-9oiEbg9n7LRqH8ch
           terraformWorkspaceName: ${{ github.event.repository.name }}-dev
           tfVarSet: varset-f2C3DJRZHGfvpwdR
+          terraformDir: terraform
       - name: Terraform Init
         id: init
         run: terraform init
+        working-directory: terraform
       - name: Terraform Validate
         id: validate
         run: terraform validate
+        working-directory: terraform
       - name: Terraform Plan
         id: plan
         run: terraform plan -var-file=dev-primary.tfvars
+        working-directory: terraform
         env:
           TF_VAR_aws_account_id: '${{ vars.DEV_AWS_ACCOUNT_ID}}'
           TF_VAR_cognito_username: ${{ secrets.COGNITO_SERVICE_ACCOUNT_USERNAME}}
@@ -404,6 +406,7 @@ jobs:
       - name: Terraform Apply on primary region
         id: apply
         run: terraform apply -var-file=dev-primary.tfvars --auto-approve
+        working-directory: terraform
         env:
           TF_VAR_aws_account_id: '${{ vars.DEV_AWS_ACCOUNT_ID}}'
           TF_VAR_cognito_username: ${{ secrets.COGNITO_SERVICE_ACCOUNT_USERNAME}}
@@ -412,6 +415,7 @@ jobs:
           TF_VAR_dt_connection_auth_token: ${{ secrets.DT_CONNECTION_AUTH_TOKEN }}
       - name: Collect Terraform Outputs for primary region
         id: tf_output
+        working-directory: terraform
         run: |
           echo "api_url=$(terraform output api_gateway_canonical_url)" >> $GITHUB_OUTPUT
           echo "aws_region=$(terraform output --raw aws_region)" >> $GITHUB_OUTPUT
@@ -437,12 +441,15 @@ jobs:
           # need to update terraform workspace name for dev
           terraformWorkspaceName: ${{ github.event.repository.name }}-dev-secondary
           tfVarSet: varset-f2C3DJRZHGfvpwdR
+          terraformDir: terraform
       - name: Terraform Init on secondary region
         id: init_secondary_region
+        working-directory: terraform
         run: terraform init
       - name: Terraform Plan on secondary region
         id: plan_secondary_region
         run: terraform plan -var-file=dev-secondary.tfvars
+        working-directory: terraform
         env:
           TF_VAR_aws_account_id: '${{ vars.DEV_AWS_ACCOUNT_ID}}'
           TF_VAR_cognito_username: ${{ secrets.COGNITO_SERVICE_ACCOUNT_USERNAME}}
@@ -452,6 +459,7 @@ jobs:
       - name: Terraform Apply on secondary region
         id: apply_secondary_region
         run: terraform apply -var-file=dev-secondary.tfvars --auto-approve
+        working-directory: terraform
         env:
           TF_VAR_aws_account_id: '${{ vars.DEV_AWS_ACCOUNT_ID}}'
           TF_VAR_cognito_username: ${{ secrets.COGNITO_SERVICE_ACCOUNT_USERNAME}}
@@ -460,6 +468,7 @@ jobs:
           TF_VAR_dt_connection_auth_token: ${{ secrets.DT_CONNECTION_AUTH_TOKEN }}
       - name: Collect Terraform Outputs for secondary region
         id: tf_output_secondary_region
+        working-directory: terraform
         run: |
           echo "secondary_region_url=$(terraform output --raw custom_domain_url)" >> $GITHUB_OUTPUT
           echo "hosted_zone_id=$(terraform output --raw hosted_zone_id)" >> $GITHUB_OUTPUT
