@@ -40,7 +40,7 @@ jobs:
     steps:
       - name: will run
         run: cat ./file.txt
-        working-directory: ./base_infra
+        working-directory: base_infra
         
   # base_infra:
   #   needs: check
