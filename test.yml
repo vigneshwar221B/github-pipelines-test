@@ -257,6 +257,7 @@ jobs:
           - region: "secondary"
             env: "dev"
     steps:
+      - uses: actions/checkout@v3
       - name: deploy base infra
         if: ${{ needs.folder_changes.outputs.run_job == true }}
         uses:  ./.github/actions/infra
@@ -284,6 +285,7 @@ jobs:
     needs: deploy_dev
     if: ${{ github.ref == 'refs/heads/main'}}
     steps:
+      - uses: actions/checkout@v3
       - name: deploy mr infra
         if: ${{ needs.folder_changes.outputs.run_job == true }}
         uses:  ./.github/actions/mr

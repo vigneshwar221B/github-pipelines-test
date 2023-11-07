@@ -38,6 +38,7 @@ jobs:
   job1:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: custom action
         uses: ./.github/actions/test
   job2:
