@@ -50,6 +50,8 @@ jobs:
       - name: custom action
         id: tf_output
         uses: ./.github/actions/test
+        with:
+          env: ${{ matrix.env }}
 
   job2:
     needs: job1
