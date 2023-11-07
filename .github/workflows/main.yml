@@ -38,6 +38,7 @@ jobs:
   job1:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
       - name: will run
         run: cat ./file.txt
         working-directory: base_infra
