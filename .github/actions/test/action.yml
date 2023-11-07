@@ -4,7 +4,7 @@ description: deploys the base infra
 outputs:
   region:
     description: "werfeafc"
-    value: ${{ steps.tf_output.outputs.api_url }}
+    value: ${{ steps.tf_output.outputs.region }}
 
 runs:
   using: "composite"
