@@ -1,0 +1,28 @@
+on:
+  workflow_call
+
+jobs:
+  job1:
+    runs-on: ubuntu-latest
+    outputs:
+      region1: ${{ steps.tf_output.outputs.dev_region }}
+      region2: ${{ steps.tf_output.outputs.prod_region }}
+    strategy:
+      matrix:
+        include:
+          - env: dev
+          - env: prod
+    steps:
+      - uses: actions/checkout@v3
+      - name: custom action
+        id: tf_output
+        uses: ./.github/actions/test
+        with:
+          env: ${{ matrix.env }}
+
+  job2:
+    needs: job1
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo ${{needs.job1.outputs.region1}}
+      - run: echo ${{needs.job1.outputs.region2}}

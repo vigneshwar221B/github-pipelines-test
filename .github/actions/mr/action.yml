@@ -59,6 +59,9 @@ inputs:
   websocket_domain_name:
     description: "Websocket Domain Name"
     required: true
+  aws_region:
+    description: "AWS region for provider"
+    required: true
 
 runs:
   using: "composite"
@@ -109,9 +112,9 @@ runs:
         TF_VAR_cognito_username: ${{ inputs.cognito_username}
         TF_VAR_cognito_password: ${{ inputs.cognito_password}}
         TF_VAR_teams_url: ${{ inputs.teams_url}}
-        TF_VAR_region_1_health_check_id: ${{ inputs.us_east_1_synthetic_health_check_id }}
-        TF_VAR_region_2_health_check_id: ${{ inputs.us_west_2_synthetic_health_check_id }}
-        TF_VAR_primary_region: ${{ inputs.aws_region }}
+        TF_VAR_region_1_health_check_id: ${{ inputs.region_1_health_check_id }}
+        TF_VAR_region_2_health_check_id: ${{ inputs.region_2_health_check_id }}
+        TF_VAR_primary_region: ${{ inputs.primary_region }}
         TF_VAR_secondary_region: ${{ inputs.secondary_region }}
         TF_VAR_primary_websocket_url: ${{ inputs.primary_websocket_url }}
         TF_VAR_secondary_websocket_url: ${{ inputs.secondary_websocket_url }}
@@ -132,10 +135,10 @@ runs:
         TF_VAR_cognito_username: ${{ inputs.cognito_username}
         TF_VAR_cognito_password: ${{ inputs.cognito_password}}
         TF_VAR_teams_url: ${{ inputs.teams_url}}
-        TF_VAR_region_1_health_check_id: ${{ inputs.us_east_1_synthetic_health_check_id }}
-        TF_VAR_region_2_health_check_id: ${{ inputs.us_west_2_synthetic_health_check_id }}
-        TF_VAR_primary_region: ${{ inputs.aws_region }}
-        TF_VAR_secondary_region: ${{ inputs.aws_region }}
+        TF_VAR_region_1_health_check_id: ${{ inputs.region_1_health_check_id }}
+        TF_VAR_region_2_health_check_id: ${{ inputs.region_2_health_check_id }}
+        TF_VAR_primary_region: ${{ inputs.primary_region }}
+        TF_VAR_secondary_region: ${{ inputs.secondary_region }}
         TF_VAR_primary_websocket_url: ${{ inputs.primary_websocket_url }}
         TF_VAR_secondary_websocket_url: ${{ inputs.secondary_websocket_url }}
         TF_VAR_websocket_domain_name: ${{ inputs.websocket_domain_name }}

@@ -34,31 +34,36 @@ jobs:
   #           echo "There are no modified files in the '$DIRECTORY_TO_CHECK' folder."
   #           echo "run_job=false" >> "$GITHUB_OUTPUT"
   #         fi
-  
-  job1:
-    runs-on: ubuntu-latest
-    outputs:
-      region1: ${{ steps.tf_output.outputs.dev_region }}
-      region2: ${{ steps.tf_output.outputs.prod_region }}
-    strategy:
-      matrix:
-        include:
-          - env: dev
-          - env: prod
-    steps:
-      - uses: actions/checkout@v3
-      - name: custom action
-        id: tf_output
-        uses: ./.github/actions/test
-        with:
-          env: ${{ matrix.env }}
+  rjob1:
+    uses: ./.github/workflows/helper_prod.yml@main
 
-  job2:
-    needs: job1
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo ${{needs.job1.outputs.region1}}
-      - run: echo ${{needs.job1.outputs.region2}}
+  rjob2:
+    uses: ./.github/workflows/helper_prod.yml@main
+
+  # job1:
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     region1: ${{ steps.tf_output.outputs.dev_region }}
+  #     region2: ${{ steps.tf_output.outputs.prod_region }}
+  #   strategy:
+  #     matrix:
+  #       include:
+  #         - env: dev
+  #         - env: prod
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: custom action
+  #       id: tf_output
+  #       uses: ./.github/actions/test
+  #       with:
+  #         env: ${{ matrix.env }}
+
+  # job2:
+  #   needs: job1
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - run: echo ${{needs.job1.outputs.region1}}
+  #     - run: echo ${{needs.job1.outputs.region2}}
         
   # base_infra:
   #   needs: check

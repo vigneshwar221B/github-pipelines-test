@@ -19,9 +19,12 @@ outputs:
   api_url:
     description: "API URL"
     value: ${{ steps.tf_output.outputs.api_url }}
-  aws_region:
+  aws_region1:
     description: "AWS Region"
-    value: ${{ steps.tf_output.outputs.aws_region }}
+    value: ${{ steps.tf_output.outputs.aws_region1 }}
+  aws_region2:
+    description: "AWS Region"
+    value: ${{ steps.tf_output.outputs.aws_region2 }}
   aws_account_id:
     description: "AWS Account ID"
     value: ${{ steps.tf_output.outputs.aws_account_id }}
@@ -30,7 +33,7 @@ outputs:
     value: ${{ steps.tf_output.outputs.cognito_details_ssm_name }}
   api_automation_phone_number_ssm_name:
     description: "API Automation Phone Number SSM Name"
-    value: ${{ steps.tf_output.outputs.api_automation_phone_number_ssm_name }}
+    value: ${{ steps.tf_output.outputs.api_automation_phone_number_ssm_param_name }}
   dtmf_test_sma_lambda_handler_name:
     description: "DTMF Test SMA Lambda Handler Name"
     value: ${{ steps.tf_output.outputs.dtmf_test_sma_lambda_handler_name }}
@@ -38,7 +41,7 @@ outputs:
     description: "SMA Handler Lambda Name"
     value: ${{ steps.tf_output.outputs.sma_handler_lambda_name }}
   sip_rule_ssm_param:
-    description: "SIP Rule SSM Parameter"
+    description: "SIP Rule SSM Param"
     value: ${{ steps.tf_output.outputs.sip_rule_ssm_param }}
   dtmf_automation_dynamodb_name:
     description: "DTMF Automation DynamoDB Name"
@@ -52,9 +55,36 @@ outputs:
   primary_region_invoke_url:
     description: "Primary Region Invoke URL"
     value: ${{ steps.tf_output.outputs.primary_region_invoke_url }}
+  us_east_1_synthetic_health_check_id:
+    description: "US East 1 Synthetic Health Check ID"
+    value: ${{ steps.tf_output.outputs.us_east_1_synthetic_health_check_id }}
+  primary_websocket_url:
+    description: "Primary Websocket URL"
+    value: ${{ steps.tf_output.outputs.primary_websocket_url }}
+  websocket_domain_name:
+    description: "Websocket Domain Name"
+    value: ${{ steps.tf_output.outputs.websocket_domain_name }}
   english_fast_vrs_number:
     description: "English Fast VRS Number"
     value: ${{ steps.tf_output.outputs.english_fast_vrs_number }}
+  secondary_region_url:
+    description: "Secondary Region URL"
+    value: ${{ steps.tf_output_secondary_region.outputs.secondary_region_url }}
+  hosted_zone_id:
+    description: "Hosted Zone ID"
+    value: ${{ steps.tf_output_secondary_region.outputs.hosted_zone_id }}
+  domain_name:
+    description: "Domain Name"
+    value: ${{ steps.tf_output_secondary_region.outputs.domain_name }}
+  environment:
+    description: "Environment"
+    value: ${{ steps.tf_output_secondary_region.outputs.environment }}
+  us_west_2_synthetic_health_check_id:
+    description: "US West 2 Synthetic Health Check ID"
+    value: ${{ steps.tf_output.outputs.us_west_2_synthetic_health_check_id }}
+  secondary_websocket_url:
+    description: "Secondary Websocket URL"
+    value: ${{ steps.tf_output_secondary_region.outputs.secondary_websocket_url }}
 
 runs:
   using: "composite"
@@ -121,7 +151,7 @@ runs:
       run: |
           if [ ${{ inputs.region }} == "primary" ]; then
             echo "api_url=$(terraform output api_gateway_canonical_url)" >> $GITHUB_OUTPUT
-            echo "aws_region=$(terraform output --raw aws_region)" >> $GITHUB_OUTPUT
+            echo "aws_region1=$(terraform output --raw aws_region)" >> $GITHUB_OUTPUT
             echo "aws_account_id=$(terraform output --raw aws_account_id)" >> $GITHUB_OUTPUT
             echo "cognito_details_ssm_name=$(terraform output --raw cognito_details_ssm_name)" >> $GITHUB_OUTPUT
             echo "api_automation_phone_number_ssm_name=$(terraform output --raw api_automation_phone_number_ssm_param_name)" >> $GITHUB_OUTPUT
@@ -143,7 +173,7 @@ runs:
             echo "domain_name=$(terraform output --raw domain_name)" >> $GITHUB_OUTPUT
             echo "environment=$(terraform output --raw environment)" >> $GITHUB_OUTPUT
             echo "us_west_2_synthetic_health_check_id=$(terraform output --raw synthetic_health_check_id)" >> $GITHUB_OUTPUT
-            echo "aws_region=$(terraform output --raw aws_region)" >> $GITHUB_OUTPUT
+            echo "aws_region2=$(terraform output --raw aws_region)" >> $GITHUB_OUTPUT
             echo "secondary_websocket_url=$(terraform output --raw websocket_url)" >> $GITHUB_OUTPUT
           fi
         
