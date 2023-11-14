@@ -35,10 +35,12 @@ jobs:
   #           echo "run_job=false" >> "$GITHUB_OUTPUT"
   #         fi
   rjob1:
+    strategy:
+      matrix: 
+        target: [dev, stage, prod]
     uses: ./.github/workflows/helper_prod.yml
 
-  rjob2:
-    uses: ./.github/workflows/helper_prod.yml
+
 
   # job1:
   #   runs-on: ubuntu-latest
