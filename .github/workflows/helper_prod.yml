@@ -8,7 +8,6 @@ on:
 jobs:
   job1:
     runs-on: ubuntu-latest
-    environment: ${{ inputs.env }}
     outputs:
       region1: ${{ steps.tf_output.outputs.dev_region }}
       region2: ${{ steps.tf_output.outputs.prod_region }}
@@ -33,4 +32,4 @@ jobs:
       - run: echo ${{needs.job1.outputs.region2}}
       - run: echo ${{secrets.DT_URL}}
       - run: echo ${{ github.job }}
-      - run: echo ${{ 'a' == 'a' && 'hi' || 'hello' }}
+      - run: echo ${{ 'a' == 'b' && 'hi' || 'hello' }}
