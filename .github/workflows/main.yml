@@ -45,16 +45,16 @@ jobs:
       # env: ${{matrix.target}}
       env: test1
 
-  rjob2:
-    # strategy:
-    #   matrix:
-    #     target: [test1, test1]
-    uses: ./.github/workflows/helper_prod.yml
-    secrets: inherit
-    with:
-      # env: ${{matrix.target}}
-      env: test1
-      
+  # rjob2:
+  #   # strategy:
+  #   #   matrix:
+  #   #     target: [test1, test1]
+  #   uses: ./.github/workflows/helper_prod.yml
+  #   secrets: inherit
+  #   with:
+  #     # env: ${{matrix.target}}
+  #     env: test2
+
   # rjob2:
   #   # strategy:
   #   #   matrix:
