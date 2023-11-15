@@ -36,18 +36,22 @@ jobs:
   #           echo "run_job=false" >> "$GITHUB_OUTPUT"
   #         fi
   rjob1:
-    strategy:
-      matrix: 
-        target: [dev, stage, prod]
+    # strategy:
+    #   matrix: 
+    #     target: [dev, stage, prod]
     uses: ./.github/workflows/helper_prod.yml
     secrets: inherit
+    with:
+      env: test1
   
   rjob2:
-    strategy:
-      matrix: 
-        target: [prod]
+    # strategy:
+    #   matrix: 
+    #     target: [prod]
     uses: ./.github/workflows/helper_prod.yml
     secrets: inherit
+    with:
+      env: test1
 
   # job1:
   #   runs-on: ubuntu-latest

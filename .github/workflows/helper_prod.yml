@@ -1,5 +1,9 @@
 on:
-  workflow_call
+  workflow_call:
+    inputs:
+      env:
+        required: true
+        type: string
 
 jobs:
   job1:
