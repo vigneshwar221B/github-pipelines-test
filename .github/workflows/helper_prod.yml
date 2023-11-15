@@ -32,3 +32,4 @@ jobs:
       - run: echo ${{needs.job1.outputs.region1}}
       - run: echo ${{needs.job1.outputs.region2}}
       - run: echo ${{secrets.DT_URL}}
+      - run: echo ${{ github.job }}
