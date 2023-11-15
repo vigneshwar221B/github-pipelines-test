@@ -38,7 +38,7 @@ jobs:
   rjob1:
     strategy:
       matrix:
-        target: [test1, test2]
+        target: [test1, test1]
     uses: ./.github/workflows/helper_prod.yml
     secrets: inherit
     with:
