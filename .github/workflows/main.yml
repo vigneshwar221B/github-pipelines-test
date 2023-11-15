@@ -6,6 +6,7 @@ on:
       - main
 
 jobs:
+  
   # check:
   #   name: Check files in a specific folder
   #   outputs:
@@ -39,7 +40,7 @@ jobs:
       matrix: 
         target: [dev, stage, prod]
     uses: ./.github/workflows/helper_prod.yml
-
+    secrets: inherit
 
 
   # job1:

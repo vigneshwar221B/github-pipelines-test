@@ -1,0 +1,87 @@
+name: deploy region and multi region deployments
+
+on:
+  workflow_call
+
+jobs:
+  deploy_dev:
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    environment: dev
+    if: ${{ github.ref == 'refs/heads/main'}}
+    outputs:
+      api_url: ${{ steps.tf_output.outputs.api_url }}
+      aws_region: ${{steps.tf_output.outputs.aws_region}}
+      aws_account_id: ${{ steps.tf_output.outputs.aws_account_id }}
+      cognito_details_ssm_name: ${{ steps.tf_output.outputs.cognito_details_ssm_name}}
+      api_automation_phone_number_ssm_name: ${{ steps.tf_output.outputs.api_automation_phone_number_ssm_name }}
+      dtmf_test_sma_lambda_handler_name: ${{ steps.tf_output.outputs.dtmf_test_sma_lambda_handler_name }}
+      sma_handler_lambda_name: ${{ steps.tf_output.outputs.sma_handler_lambda_name }}
+      sip_rule_ssm_param: ${{ steps.tf_output.outputs.sip_rule_ssm_param }}
+      dtmf_automation_dynamodb_name: ${{ steps.tf_output.outputs.dtmf_automation_dynamodb_name }}
+      switchboard_dynamodb_name: ${{ steps.tf_output.outputs.switchboard_dynamodb_name }}
+      primary_region_url: ${{ steps.tf_output.outputs.primary_region_url }}
+      primary_region_invoke_url: ${{ steps.tf_output.outputs.primary_region_invoke_url }}
+      english_fast_vrs_number: ${{steps.tf_output.outputs.english_fast_vrs_number}}
+    strategy:
+      matrix:
+        include:
+          - region: "primary"
+            env: "dev"
+          - region: "secondary"
+            env: "dev"
+    steps:
+      - uses: actions/checkout@v3
+      - name: deploy base infra
+        if: ${{ needs.folder_changes.outputs.run_job == true }}
+        uses:  ./.github/actions/infra
+        with:
+          region: ${{ matrix.region }}
+          env: ${{ matrix.env }}
+          teams_url: ${{ secrets.DEV_QA_MESSENGER_URL }}
+          account_id: ${{ vars.DEV_AWS_ACCOUNT_ID }}
+
+      - name: deploy infra
+        uses:  ./.github/actions/deploy
+        id: tf_output
+        with:
+          region: ${{ matrix.region }}
+          env: ${{ matrix.env }}
+          teams_url: ${{ secrets.DEV_QA_MESSENGER_URL }}
+          account_id: ${{ vars.DEV_AWS_ACCOUNT_ID }}
+
+  deploy_dev_mr:
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    environment: dev
+    needs: deploy_dev
+    if: ${{ github.ref == 'refs/heads/main'}}
+    steps:
+      - uses: actions/checkout@v3
+      - name: deploy mr infra
+        if: ${{ needs.folder_changes.outputs.run_job == true }}
+        uses:  ./.github/actions/mr
+        with:
+          region: ${{ matrix.region }}
+          env: ${{ matrix.env }}
+          account_id: ${{ vars.DEV_AWS_ACCOUNT_ID }}
+          teams_url: ${{ secrets.DEV_QA_MESSENGER_URL }}
+          provider_region: ${{ needs.deploy_dev.outputs.aws_region }}
+          primary_region_url: ${{ needs.deploy_dev.outputs.primary_region_url }}
+          secondary_region_url: ${{ needs.deploy_dev_secondary_region.outputs.secondary_region_url }}
+          hosted_zone_id: ${{ needs.deploy_dev_secondary_region.outputs.hosted_zone_id }}
+          domain_name: ${{ needs.deploy_dev_secondary_region.outputs.domain_name }}
+          environment: ${{ needs.deploy_dev_secondary_region.outputs.environment }}
+          cognito_username: ${{ secrets.COGNITO_SERVICE_ACCOUNT_USERNAME }}
+          cognito_password: ${{ secrets.COGNITO_SERVICE_ACCOUNT_PASSWORD }}
+          region_1_health_check_id: ${{ needs.deploy_dev.outputs.us_east_1_synthetic_health_check_id }}
+          region_2_health_check_id: ${{ needs.deploy_dev_secondary_region.outputs.us_west_2_synthetic_health_check_id }}
+          primary_region: ${{ needs.deploy_dev.outputs.aws_region }}
+          secondary_region: ${{ needs.deploy_dev_secondary_region.outputs.secondary_region }}
+          primary_websocket_url: ${{ needs.deploy_dev.outputs.primary_websocket_url }}
+          secondary_websocket_url: ${{ needs.deploy_dev_secondary_region.outputs.secondary_websocket_url }}
+  
