@@ -41,6 +41,13 @@ jobs:
         target: [dev, stage, prod]
     uses: ./.github/workflows/helper_prod.yml
     secrets: inherit
+  
+  rjob2:
+    strategy:
+      matrix: 
+        target: [prod]
+    uses: ./.github/workflows/helper_prod.yml
+    secrets: inherit
 
   # job1:
   #   runs-on: ubuntu-latest
