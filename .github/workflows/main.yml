@@ -35,7 +35,7 @@ jobs:
   #           echo "There are no modified files in the '$DIRECTORY_TO_CHECK' folder."
   #           echo "run_job=false" >> "$GITHUB_OUTPUT"
   #         fi
-  
+
   rjob1:
     strategy:
       matrix: 
