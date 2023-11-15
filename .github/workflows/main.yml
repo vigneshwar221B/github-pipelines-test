@@ -6,14 +6,13 @@ on:
       - main
 
 jobs:
-  
   # check:
   #   name: Check files in a specific folder
   #   outputs:
   #     run_job: ${{ steps.check_files.outputs.run_job }}
   #   runs-on: ubuntu-latest
   #   env:
-  #     DIRECTORY_TO_CHECK: base_infra 
+  #     DIRECTORY_TO_CHECK: base_infra
   #   steps:
   #     - name: Checkout code
   #       uses: actions/checkout@v2
@@ -26,7 +25,7 @@ jobs:
   #         echo "=============== list modified files ==============="
   #         # Check for changes in the specified directory
   #         git diff --name-only HEAD^ HEAD "$DIRECTORY_TO_CHECK/"
-          
+
   #         echo "========== check if there are modified files =========="
   #         if [[ -n $(git diff --name-only HEAD^ HEAD "$DIRECTORY_TO_CHECK/") ]]; then
   #           echo "There are modified files in the '$DIRECTORY_TO_CHECK' folder."
@@ -37,17 +36,17 @@ jobs:
   #         fi
 
   rjob1:
-    # strategy:
-      # matrix: 
-      #   target: [test1, test2]
+    strategy:
+      matrix:
+        target: [test1, test2]
     uses: ./.github/workflows/helper_prod.yml
     secrets: inherit
     with:
-      env: test1
-  
+      env: ${{matrix.target}}
+
   # rjob2:
   #   # strategy:
-  #   #   matrix: 
+  #   #   matrix:
   #   #     target: [prod]
   #   uses: ./.github/workflows/helper_prod.yml
   #   secrets: inherit
@@ -78,10 +77,10 @@ jobs:
   #   steps:
   #     - run: echo ${{needs.job1.outputs.region1}}
   #     - run: echo ${{needs.job1.outputs.region2}}
-        
+
   # base_infra:
   #   needs: check
-  #   if: needs.check.outputs.run_job == 'true' 
+  #   if: needs.check.outputs.run_job == 'true'
   #   runs-on: ubuntu-latest
   #   steps:
   #     - name: checkout code
@@ -94,7 +93,7 @@ jobs:
 
   #     - name: Print Message
   #       run: echo hello
-  
+
   # other_jobs:
   #   needs: base_infra
   #   if: ${{ always() && github.ref == 'refs/heads/main'}}
@@ -112,7 +111,7 @@ jobs:
   #         - env: "dev"
   #         - env: "prod"
   #   steps:
-  #     - run: echo ${{matrix.env}} 
+  #     - run: echo ${{matrix.env}}
 
   # job2:
   #   runs-on: ubuntu-latest
@@ -125,7 +124,7 @@ jobs:
   #         - env: "prod"
   #   steps:
   #     - run: echo ${{matrix.env}}
-  
+
   # job1:
   #   runs-on: ubuntu-latest
   #   outputs:
