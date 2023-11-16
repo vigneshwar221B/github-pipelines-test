@@ -30,7 +30,7 @@ jobs:
   job2:
     needs: job1
     runs-on: ubuntu-latest
-    #environment: ${{inputs.env}}
+    environment: ${{inputs.env}}
     steps:
       # - run: echo ${{needs.job1.outputs.region1}}
       # - run: echo ${{needs.job1.outputs.region2}}
