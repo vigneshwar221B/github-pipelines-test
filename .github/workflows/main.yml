@@ -140,18 +140,17 @@ jobs:
   #     - run: echo ${{matrix.env}}
 
   job1:
-    strategy:
-      max-parallel: 1
-      matrix:
-        include:
-          - env: "test1"
-          - env: "test1"
     uses: ./.github/workflows/helper_prod.yml
     secrets: inherit
     with:
-      env: ${{matrix.env}}
+      env: test1
 
-      
+  job2:
+    uses: ./.github/workflows/helper_prod.yml
+    secrets: inherit
+    with:
+      env: test1
+
   # job1:
   #   environment: test1
   #   runs-on: ubuntu-latest
