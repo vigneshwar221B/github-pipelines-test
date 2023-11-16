@@ -146,7 +146,7 @@ jobs:
       env: test1
 
   job2:
-    needs: job1
+    # needs: job1
     uses: ./.github/workflows/helper_prod.yml
     secrets: inherit
     with:
