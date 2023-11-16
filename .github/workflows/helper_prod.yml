@@ -8,32 +8,32 @@ env:
   e1: smth
 
 jobs:
-  # job1:
-  #   runs-on: ubuntu-latest
-  #   #environment: ${{inputs.env}}
-  #   outputs:
-  #     region1: ${{ steps.tf_output.outputs.dev_region }}
-  #     region2: ${{ steps.tf_output.outputs.prod_region }}
-  #   strategy:
-  #     matrix:
-  #       include:
-  #         - env: dev
-  #         - env: prod
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - name: custom action
-  #       id: tf_output
-  #       uses: ./.github/actions/test
-  #       with:
-  #         env: ${{ matrix.env }}
-
-  job2:
-    #needs: job1
+  job1:
     runs-on: ubuntu-latest
+    #environment: ${{inputs.env}}
+    outputs:
+      region1: ${{ steps.tf_output.outputs.dev_region }}
+      region2: ${{ steps.tf_output.outputs.prod_region }}
+    strategy:
+      matrix:
+        include:
+          - env: dev
+          - env: prod
     steps:
-      # - run: echo ${{needs.job1.outputs.region1}}
-      # - run: echo ${{needs.job1.outputs.region2}}
-      - run: echo ${{secrets.DT_URL}}
-      - run: echo ${{ github.job }}
-      - run: echo ${{ 'a' == 'b' && 'hi' || 'hello' }}
-      - run: echo ${{ env.e1 }}
+      - uses: actions/checkout@v3
+      - name: custom action
+        id: tf_output
+        uses: ./.github/actions/test
+        with:
+          env: ${{ matrix.env }}
+
+  # job2:
+  #   #needs: job1
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     # - run: echo ${{needs.job1.outputs.region1}}
+  #     # - run: echo ${{needs.job1.outputs.region2}}
+  #     - run: echo ${{secrets.DT_URL}}
+  #     - run: echo ${{ github.job }}
+  #     - run: echo ${{ 'a' == 'b' && 'hi' || 'hello' }}
+  #     - run: echo ${{ env.e1 }}

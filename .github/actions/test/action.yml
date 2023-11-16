@@ -21,3 +21,5 @@ runs:
       id: tf_output
       shell: bash
       run: echo "${{ inputs.env }}_region=blah" >> $GITHUB_OUTPUT
+    - shell: bash
+      run: echo ${{ env.e1 }}
