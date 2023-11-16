@@ -8,7 +8,7 @@ env:
   e1: smth
 
 jobs:
-  job1:
+  ijob1:
     runs-on: ubuntu-latest
     environment: ${{inputs.env}}
     outputs:
@@ -27,8 +27,8 @@ jobs:
         with:
           env: ${{ matrix.env }}
 
-  job2:
-    needs: job1
+  ijob2:
+    needs: ijob1
     runs-on: ubuntu-latest
     environment: ${{inputs.env}}
     steps:
