@@ -140,6 +140,7 @@ jobs:
   #     - run: echo ${{matrix.env}}
 
   job1:
+
     uses: ./.github/workflows/helper_prod.yml
     secrets: inherit
     with:
@@ -150,7 +151,7 @@ jobs:
     uses: ./.github/workflows/helper_prod.yml
     secrets: inherit
     with:
-      env: test1
+      env: test2
 
   # job1:
   #   environment: test1
