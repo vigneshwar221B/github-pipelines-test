@@ -37,15 +37,15 @@ jobs:
   #           echo "run_job=false" >> "$GITHUB_OUTPUT"
   #         fi
 
-  rjob1:
-    # strategy:
-    #   matrix:
-    #     target: [test1, test1]
-    uses: ./.github/workflows/helper_prod.yml
-    secrets: inherit
-    with:
-      # env: ${{matrix.target}}
-      env: test1
+  # rjob1:
+  #   # strategy:
+  #   #   matrix:
+  #   #     target: [test1, test1]
+  #   uses: ./.github/workflows/helper_prod.yml
+  #   secrets: inherit
+  #   with:
+  #     # env: ${{matrix.target}}
+  #     env: test1
 
   # rjob2:
   #   # strategy:
@@ -139,33 +139,27 @@ jobs:
   #   steps:
   #     - run: echo ${{matrix.env}}
 
-  # job1:
-  #   runs-on: ubuntu-latest
-  #   outputs:
-  #     out1: ${{ steps.tf_output.outputs.smth1 }}
-  #     out2: ${{ steps.tf_output.outputs.smth2 }}
-  #   strategy:
-  #     matrix:
-  #       include:
-  #         - env: "dev"
-  #         - env: "prod"
-  #   steps:
-  #     - name: smth-matrix
-  #       id: tf_output
-  #       run: |
-  #         if [ ${{ matrix.env }} == "dev" ]; then
-  #           echo "smth1=${{ matrix.env }}" >> $GITHUB_OUTPUT
-  #         fi
-  #         if [ ${{ matrix.env }} == "prod" ]; then
-  #           echo "smth2=${{ matrix.env }}" >> $GITHUB_OUTPUT
-  #         fi
+  job1:
+    runs-on: ubuntu-latest
+    environment: test1
+    strategy:
+      matrix:
+        include:
+          - env: "dev"
+          - env: "qa"
+          - env: "prod"
+    steps:
+      - name: smth-matrix
+        id: tf_output
+        run: echo ${{matrix.env}}
+
   # job1:
   #   environment: test1
   #   runs-on: ubuntu-latest
   #   steps:
   #     - run: |
   #         echo j1
-  
+
   # job2:
   #   environment: test1
   #   needs: job1
@@ -173,4 +167,3 @@ jobs:
   #   steps:
   #     - run: |
   #         echo j2
-
