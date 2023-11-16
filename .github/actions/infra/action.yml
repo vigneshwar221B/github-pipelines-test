@@ -14,6 +14,9 @@ inputs:
   teams_url:
     description: url for teams messenger
     required: true
+  tf_workspace:
+    description: name of terraform workspace
+    required: true
     
 runs:
   using: "composite"
@@ -40,7 +43,7 @@ runs:
       with:
         apiToken: ${{ secrets.TF_API_TOKEN }}
         teamID: team-9oiEbg9n7LRqH8ch
-        terraformWorkspaceName: ${{ github.event.repository.name }}-${{inputs.env}}-infra-${{ inputs.region }}-region
+        terraformWorkspaceName: ${{inputs.tf_workspace}}
         tfVarSet: varset-f2C3DJRZHGfvpwdR
         terraformDir: base_infra
     - name: Terraform Init
@@ -69,8 +72,9 @@ runs:
       env:
         TF_VAR_aws_aws_account_id: '${{ inputs.aws_account_id}}'
         TF_VAR_teams_url: ${{ inputs.teams_url}}
+
     - name: Send Chat Fail Notification
-      if: ${{failure() && needs.folder_changes.outputs.run_job == true}}
+      if: ${{ failure() }}
       uses: sorenson-eng/shared-github-actions/send-teams-notification@main
       with:
         TeamsWebhookUrl: ${{ secrets.MSTEAMS_WEBHOOK }}

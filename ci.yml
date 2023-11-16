@@ -1,0 +1,358 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - feature/**
+
+env:
+  CI: true
+  NODE_VERSION: 18.x
+  TF_VERSION: '1.1.7'
+  TF_AGENT_POOL_ID: 'apool-3BXHFcvMX5e3gvMT'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+      - name: Install Dependencies
+        run: yarn --frozen-lockfile
+      - name: Yarn Audit
+        run: |
+          yarn audit --level high | tee yarn-audit.txt
+          exit $(grep -c "^Severity:.*High$" yarn-audit.txt)
+      - run: yarn run test
+      - name: Create Release Version
+        run: yarn semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
+      - run: yarn run build
+      - name: Upload Lambda Package
+        uses: actions/upload-artifact@v3
+        with:
+          name: lambda-package
+          path: dist/**/*.zip
+      - name: Upload Synthetics Package
+        uses: actions/upload-artifact@v3
+        with:
+          name: synthetics-package
+          path: synthetics/**
+      - name: Send Chat Fail Notification
+        if: ${{ failure() && github.ref == 'refs/heads/main' }}
+        uses: sorenson-eng/shared-github-actions/send-teams-notification@main
+        with:
+          TeamsWebhookUrl: ${{ secrets.MSTEAMS_TEST_NOTIFICATIONS }}
+          jobName: 'Switchboard Build Phase'
+          jobUrl: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+          jobRepo: ${{ github.repository }}
+          triggeredBy: '${{ github.actor }}'
+
+  deploy_feature:
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    needs: build
+    environment: feature
+    if: startsWith( github.ref, 'refs/heads/feature/')
+    defaults:
+      run:
+        working-directory: terraform
+    outputs:
+      api_url: ${{ steps.tf_output.outputs.api_url }}
+      aws_region: ${{steps.tf_output.outputs.aws_region}}
+      aws_account_id: ${{ steps.tf_output.outputs.aws_account_id }}
+      cognito_details_ssm_name: ${{ steps.tf_output.outputs.cognito_details_ssm_name}}
+      api_automation_phone_number_ssm_name: ${{ steps.tf_output.outputs.api_automation_phone_number_ssm_name }}
+      dtmf_test_sma_lambda_handler_name: ${{ steps.tf_output.outputs.dtmf_test_sma_lambda_handler_name }}
+      sma_handler_lambda_name: ${{ steps.tf_output.outputs.sma_handler_lambda_name }}
+      sip_rule_ssm_param: ${{ steps.tf_output.outputs.sip_rule_ssm_param }}
+      dtmf_automation_dynamodb_name: ${{ steps.tf_output.outputs.dtmf_automation_dynamodb_name }}
+      switchboard_dynamodb_name: ${{ steps.tf_output.outputs.switchboard_dynamodb_name }}
+      primary_region_invoke_url: ${{ steps.tf_output.outputs.primary_region_invoke_url }}
+      english_fast_vrs_number: ${{steps.tf_output.outputs.english_fast_vrs_number}}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download Lambda Packages
+        uses: actions/download-artifact@v3
+        with:
+          name: lambda-package
+          path: terraform
+      - name: Download Synthetics Packages
+        uses: actions/download-artifact@v3
+        with:
+          name: synthetics-package
+          path: terraform
+      - name: Use Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+          terraform_wrapper: false
+      - name: Terraform Format
+        id: fmt
+        run: terraform fmt -check
+      - name: Determine JIRA ID from branch name
+        id: jira_regex
+        run: |
+          echo issue_id=$(echo "$GITHUB_REF_NAME" | grep -o -E "[a-zA-Z0-9,\.\_\-]+-[0-9]+") | tr '[:upper:]' '[:lower:]' >> $GITHUB_OUTPUT
+      - name: Set Up Terraform Workspace
+        uses: sorenson-eng/shared-github-actions/create-tf-cloud-workspace@main
+        with:
+          apiToken: ${{ secrets.TF_API_TOKEN }}
+          teamID: team-9oiEbg9n7LRqH8ch
+          terraformWorkspaceName: ${{ github.event.repository.name }}-${{ steps.jira_regex.outputs.issue_id }}
+          tfVarSet: varset-f2C3DJRZHGfvpwdR
+      - name: Terraform Init
+        id: init
+        run: terraform init
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -var-file=feature.tfvars
+        env:
+          TF_VAR_environment: '${{ steps.jira_regex.outputs.issue_id }}'
+          TF_VAR_aws_account_id: '${{ vars.DEV_AWS_ACCOUNT_ID}}'
+          TF_VAR_cognito_username: ${{ secrets.COGNITO_SERVICE_ACCOUNT_USERNAME}}
+          TF_VAR_cognito_password: ${{ secrets.COGNITO_SERVICE_ACCOUNT_PASSWORD}}
+          TF_VAR_teams_url: ${{ secrets.DEV_QA_MESSENGER_URL}}
+          TF_VAR_dt_connection_auth_token: ${{ secrets.DT_CONNECTION_AUTH_TOKEN }}
+      - name: Terraform Apply
+        env:
+          TF_VAR_environment: '${{ steps.jira_regex.outputs.issue_id }}'
+          TF_VAR_aws_account_id: '${{ vars.DEV_AWS_ACCOUNT_ID}}'
+          TF_VAR_cognito_username: ${{ secrets.COGNITO_SERVICE_ACCOUNT_USERNAME}}
+          TF_VAR_cognito_password: ${{ secrets.COGNITO_SERVICE_ACCOUNT_PASSWORD}}
+          TF_VAR_teams_url: ${{ secrets.DEV_QA_MESSENGER_URL}}
+          TF_VAR_dt_connection_auth_token: ${{ secrets.DT_CONNECTION_AUTH_TOKEN }}
+        id: apply
+        run: terraform apply -var-file=feature.tfvars --auto-approve
+      - name: Collect Terraform Outputs
+        id: tf_output
+        run: |
+          echo "api_url=$(terraform output api_gateway_canonical_url)" >> $GITHUB_OUTPUT
+          echo "aws_region=$(terraform output --raw aws_region)" >> $GITHUB_OUTPUT
+          echo "aws_account_id=$(terraform output --raw aws_account_id)" >> $GITHUB_OUTPUT
+          echo "cognito_details_ssm_name=$(terraform output --raw cognito_details_ssm_name)" >> $GITHUB_OUTPUT
+          echo "api_automation_phone_number_ssm_name=$(terraform output --raw api_automation_phone_number_ssm_param_name)" >> $GITHUB_OUTPUT
+          echo "dtmf_test_sma_lambda_handler_name=$(terraform output --raw dtmf_test_sma_lambda_handler_name)" >> $GITHUB_OUTPUT
+          echo "sma_handler_lambda_name=$(terraform output --raw sma_handler_lambda_name)" >> $GITHUB_OUTPUT
+          echo "sip_rule_ssm_param=$(terraform output --raw sip_rule_ssm_param)" >> $GITHUB_OUTPUT
+          echo "dtmf_automation_dynamodb_name=$(terraform output --raw dtmf_automation_dynamodb_name)" >> $GITHUB_OUTPUT
+          echo "switchboard_dynamodb_name=$(terraform output --raw switchboard_dynamodb_name)" >> $GITHUB_OUTPUT
+          echo "primary_region_invoke_url=$(terraform output --raw api_gateway_invoke_url)" >> $GITHUB_OUTPUT
+          echo "english_fast_vrs_number=$(terraform output --raw english_fast_vrs_number)" >> $GITHUB_OUTPUT
+      # This exists as a feature branch testing option. If you need to test notifications, set dry_run to false
+      - name: Send Chat Fail Notification
+        if: failure()
+        uses: sorenson-eng/shared-github-actions/send-teams-notification@main # set this to your feature branch
+        with:
+          TeamsWebhookUrl: ${{ secrets.MSTEAMS_TEST_NOTIFICATIONS }} # sends to test channel, not main chat
+          jobName: 'Feature Deploy'
+          jobUrl: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+          jobRepo: ${{ github.repository }}
+          triggeredBy: '${{ github.actor }}'
+          dryRun: true
+
+  func_test_api_feature:
+    permissions:
+      id-token: write
+      contents: read
+    runs-on: ubuntu-latest
+    needs: deploy_feature
+    environment: feature
+    if: startsWith( github.ref, 'refs/heads/feature/')
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+      - name: Install dependencies
+        run: yarn --frozen-lockfile
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          aws-region: ${{ needs.deploy_feature.outputs.aws_region }}
+          role-to-assume: arn:aws:iam::${{ needs.deploy_feature.outputs.aws_account_id }}:role/github-actions
+      - name: Execute the API Tests
+        run: yarn run test:api
+        env:
+          AWS_REGION: ${{ needs.deploy_feature.outputs.aws_region }}
+          SWITCHBOARD_URL: ${{ needs.deploy_feature.outputs.primary_region_invoke_url }}
+          COGNITO_SERVICE_ACCOUNT_USERNAME: ${{ secrets.COGNITO_SERVICE_ACCOUNT_USERNAME}}
+          COGNITO_SERVICE_ACCOUNT_PASSWORD: ${{ secrets.COGNITO_SERVICE_ACCOUNT_PASSWORD}}
+          TF_VAR_teams_url: ${{ secrets.DEV_QA_MESSENGER_URL}}
+          COGNITO_DETAILS_SSM_NAME: ${{ needs.deploy_feature.outputs.cognito_details_ssm_name }}
+          API_AUTOMATION_PHONE_NUMBER_SSM_NAME: ${{ needs.deploy_feature.outputs.api_automation_phone_number_ssm_name }}
+          DTMF_AUTOMATION_TEST_SMA_LAMBDA_HANDLER_NAME: ${{ needs.deploy_feature.outputs.dtmf_test_sma_lambda_handler_name }}
+          SMA_HANDLER_LAMBDA_NAME: ${{  needs.deploy_feature.outputs.sma_handler_lambda_name }}
+          SIP_RULE_SSM_PARAM: ${{  needs.deploy_feature.outputs.sip_rule_ssm_param }}
+          DTMF_AUTOMATION_DYNAMODB_NAME: ${{  needs.deploy_feature.outputs.dtmf_automation_dynamodb_name }}
+          SWITCHBOARD_DYNAMODB_NAME: ${{  needs.deploy_feature.outputs.switchboard_dynamodb_name }}
+          ENGLISH_VRS_NUMBER: ${{  needs.deploy_feature.outputs.english_fast_vrs_number }}
+      - name: Send Chat Fail Notification
+        if: ${{ failure() && github.ref == 'refs/heads/main' }}
+        uses: sorenson-eng/shared-github-actions/send-teams-notification@main
+        with:
+          TeamsWebhookUrl: ${{ secrets.MSTEAMS_WEBHOOK }}
+          jobName: '${{ github.job }}'
+          jobUrl: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+          jobRepo: ${{ github.repository }}
+          triggeredBy: '${{ github.actor }}'
+
+  deploy_dev:
+    if: ${{ github.ref == 'refs/heads/main' }}
+    needs: build
+    permissions:
+      contents: read
+      id-token: write
+
+    uses: ./.github/workflows/rw-deploy.yml
+    secrets: inherit
+    with:
+      env: dev
+      aws_account_id: ${{ vars.DEV_AWS_ACCOUNT_ID }}
+
+  func_test_api_dev:
+    permissions:
+      id-token: write
+      contents: read
+    runs-on: ubuntu-latest
+    needs: deploy_dev
+    environment: dev
+    if: ${{ github.ref == 'refs/heads/main' }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+      - name: Install dependencies
+        run: yarn --frozen-lockfile
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ${{ needs.deploy_dev.outputs.aws_region }}
+          role-to-assume: arn:aws:iam::${{ needs.deploy_dev.outputs.aws_account_id }}:role/github-actions
+      - name: Execute the API Tests
+        run: yarn run test:api
+        env:
+          AWS_REGION: ${{ needs.deploy_dev.outputs.aws_region }}
+          SWITCHBOARD_URL: ${{ needs.deploy_dev.outputs.primary_region_invoke_url }}
+          COGNITO_SERVICE_ACCOUNT_USERNAME: ${{ secrets.COGNITO_SERVICE_ACCOUNT_USERNAME}}
+          COGNITO_SERVICE_ACCOUNT_PASSWORD: ${{ secrets.COGNITO_SERVICE_ACCOUNT_PASSWORD}}
+          TF_VAR_teams_url: ${{ secrets.DEV_QA_MESSENGER_URL}}
+          COGNITO_DETAILS_SSM_NAME: ${{ needs.deploy_dev.outputs.cognito_details_ssm_name }}
+          API_AUTOMATION_PHONE_NUMBER_SSM_NAME: ${{ needs.deploy_dev.outputs.api_automation_phone_number_ssm_name }}
+          DTMF_AUTOMATION_TEST_SMA_LAMBDA_HANDLER_NAME: ${{ needs.deploy_dev.outputs.dtmf_test_sma_lambda_handler_name }}
+          SMA_HANDLER_LAMBDA_NAME: ${{  needs.deploy_dev.outputs.sma_handler_lambda_name }}
+          SIP_RULE_SSM_PARAM: ${{  needs.deploy_dev.outputs.sip_rule_ssm_param }}
+          DTMF_AUTOMATION_DYNAMODB_NAME: ${{  needs.deploy_dev.outputs.dtmf_automation_dynamodb_name }}
+          SWITCHBOARD_DYNAMODB_NAME: ${{  needs.deploy_dev.outputs.switchboard_dynamodb_name }}
+          ENGLISH_VRS_NUMBER: ${{  needs.deploy_dev.outputs.english_fast_vrs_number }}
+      - name: Send Chat Fail Notification
+        if: ${{ failure() && github.ref == 'refs/heads/main' }}
+        uses: sorenson-eng/shared-github-actions/send-teams-notification@main
+        with:
+          TeamsWebhookUrl: ${{ secrets.MSTEAMS_WEBHOOK }}
+          jobName: '${{ github.job }}'
+          jobUrl: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+          jobRepo: ${{ github.repository }}
+          triggeredBy: '${{ github.actor }}'
+
+  deploy_qa:
+    if: ${{ github.ref == 'refs/heads/main' }}
+    needs: func_test_api_dev
+    permissions:
+      contents: read
+      id-token: write
+
+    uses: ./.github/workflows/rw-deploy.yml
+    secrets: inherit
+    with:
+      env: qa
+      aws_account_id: ${{ vars.QA_AWS_ACCOUNT_ID }}
+
+  func_test_api_qa:
+    permissions:
+      id-token: write
+      contents: read
+    runs-on: ubuntu-latest
+    needs: deploy_qa
+    environment: qa
+    if: ${{ github.ref == 'refs/heads/main' }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'yarn'
+      - name: Install dependencies
+        run: yarn --frozen-lockfile
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ${{ needs.deploy_qa.outputs.aws_region }}
+          role-to-assume: arn:aws:iam::${{ needs.deploy_qa.outputs.aws_account_id }}:role/github-actions
+      - name: Execute the API Tests
+        run: yarn run test:api
+        env:
+          SWITCHBOARD_URL: ${{ needs.deploy_qa.outputs.primary_region_invoke_url }}
+          AWS_REGION: ${{ needs.deploy_qa.outputs.aws_region }}
+          COGNITO_SERVICE_ACCOUNT_USERNAME: ${{ secrets.COGNITO_SERVICE_ACCOUNT_USERNAME}}
+          COGNITO_SERVICE_ACCOUNT_PASSWORD: ${{ secrets.COGNITO_SERVICE_ACCOUNT_PASSWORD}}
+          TF_VAR_teams_url: ${{ secrets.DEV_QA_MESSENGER_URL}}
+          COGNITO_DETAILS_SSM_NAME: ${{ needs.deploy_qa.outputs.cognito_details_ssm_name }}
+          API_AUTOMATION_PHONE_NUMBER_SSM_NAME: ${{ needs.deploy_qa.outputs.api_automation_phone_number_ssm_name }}
+          DTMF_AUTOMATION_TEST_SMA_LAMBDA_HANDLER_NAME: ${{ needs.deploy_qa.outputs.dtmf_test_sma_lambda_handler_name }}
+          SMA_HANDLER_LAMBDA_NAME: ${{  needs.deploy_qa.outputs.sma_handler_lambda_name }}
+          SIP_RULE_SSM_PARAM: ${{  needs.deploy_qa.outputs.sip_rule_ssm_param }}
+          DTMF_AUTOMATION_DYNAMODB_NAME: ${{  needs.deploy_qa.outputs.dtmf_automation_dynamodb_name }}
+          SWITCHBOARD_DYNAMODB_NAME: ${{  needs.deploy_qa.outputs.switchboard_dynamodb_name }}
+          ENGLISH_VRS_NUMBER: ${{  needs.deploy_qa.outputs.english_fast_vrs_number }}
+      - name: Send Chat Fail Notification
+        if: ${{ failure() && github.ref == 'refs/heads/main' }}
+        uses: sorenson-eng/shared-github-actions/send-teams-notification@main
+        with:
+          TeamsWebhookUrl: ${{ secrets.MSTEAMS_WEBHOOK }}
+          jobName: '${{ github.job }}'
+          jobUrl: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+          jobRepo: ${{ github.repository }}
+          triggeredBy: '${{ github.actor }}'
+  
+  deploy_prod:
+    strategy:
+      max-parallel: 1
+      matrix:
+        include:
+          - environment: 'prod-na'
+          - environment: 'prod-eur'
+          - environment: 'prod-apse'
+
+    permissions:
+      contents: read
+      id-token: write
+    needs: func_test_api_qa
+      
+    if: ${{ github.ref == 'refs/heads/main' }}
+    uses: ./.github/workflows/rw-deploy-prod.yml
+    secrets: inherit
+    with:
+      env: ${{matrix.environment}}
+      aws_account_id: ${{ vars.PROD_AWS_ACCOUNT_ID }}

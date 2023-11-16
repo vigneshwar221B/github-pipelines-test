@@ -8,11 +8,14 @@ inputs:
   env:
     description: environment
     required: true
-  account_id:
+  aws_account_id:
     description: aws account id
     required: true
   teams_url:
     description: url for teams messenger
+    required: true
+  tf_workspace:
+    description: name of terraform workspace
     required: true
 
 outputs:
@@ -20,10 +23,10 @@ outputs:
     description: "API URL"
     value: ${{ steps.tf_output.outputs.api_url }}
   aws_region1:
-    description: "AWS Region"
+    description: "primary AWS Region"
     value: ${{ steps.tf_output.outputs.aws_region1 }}
   aws_region2:
-    description: "AWS Region"
+    description: "secondary AWS Region"
     value: ${{ steps.tf_output.outputs.aws_region2 }}
   aws_account_id:
     description: "AWS Account ID"
@@ -69,22 +72,22 @@ outputs:
     value: ${{ steps.tf_output.outputs.english_fast_vrs_number }}
   secondary_region_url:
     description: "Secondary Region URL"
-    value: ${{ steps.tf_output_secondary_region.outputs.secondary_region_url }}
+    value: ${{ steps.tf_output.outputs.secondary_region_url }}
   hosted_zone_id:
     description: "Hosted Zone ID"
-    value: ${{ steps.tf_output_secondary_region.outputs.hosted_zone_id }}
+    value: ${{ steps.tf_output.outputs.hosted_zone_id }}
   domain_name:
     description: "Domain Name"
-    value: ${{ steps.tf_output_secondary_region.outputs.domain_name }}
+    value: ${{ steps.tf_output.outputs.domain_name }}
   environment:
     description: "Environment"
-    value: ${{ steps.tf_output_secondary_region.outputs.environment }}
+    value: ${{ steps.tf_output.outputs.environment }}
   us_west_2_synthetic_health_check_id:
     description: "US West 2 Synthetic Health Check ID"
     value: ${{ steps.tf_output.outputs.us_west_2_synthetic_health_check_id }}
   secondary_websocket_url:
     description: "Secondary Websocket URL"
-    value: ${{ steps.tf_output_secondary_region.outputs.secondary_websocket_url }}
+    value: ${{ steps.tf_output.outputs.secondary_websocket_url }}
 
 runs:
   using: "composite"
@@ -110,25 +113,30 @@ runs:
       shell: bash
       id: fmt
       run: terraform fmt -check
+      working-directory: terraform
     - name: Set Up Terraform Workspace
       uses: sorenson-eng/shared-github-actions/create-tf-cloud-workspace@main
       with:
         apiToken: ${{ secrets.TF_API_TOKEN }}
         teamID: team-9oiEbg9n7LRqH8ch
-        terraformWorkspaceName: ${{ github.event.repository.name }}-${{inputs.env}}${{ inputs.region == "primary" && "" || "-secondary" }}
+        terraformWorkspaceName: ${{ inputs.tf_workspace }}
         tfVarSet: varset-f2C3DJRZHGfvpwdR
+        terraformDir: terraform
     - name: Terraform Init
       shell: bash
       id: init
       run: terraform init
+      working-directory: terraform
     - name: Terraform Validate
       shell: bash
       id: validate
       run: terraform validate
+      working-directory: terraform
     - name: Terraform Plan
       shell: bash
       id: plan
       run: terraform plan -var-file=${{inputs.env}}-${{ inputs.region }}.tfvars
+      working-directory: terraform
       env:
         TF_VAR_aws_account_id: '${{ inputs.aws_account_id}}'
         TF_VAR_cognito_username: ${{ secrets.COGNITO_SERVICE_ACCOUNT_USERNAME}}
@@ -139,6 +147,7 @@ runs:
       shell: bash
       id: apply
       run: terraform apply -var-file=${{inputs.env}}-${{ inputs.region }}.tfvars --auto-approve
+      working-directory: terraform
       env:
         TF_VAR_aws_account_id: '${{ inputs.aws_account_id}}'
         TF_VAR_cognito_username: ${{ secrets.COGNITO_SERVICE_ACCOUNT_USERNAME}}
@@ -148,6 +157,7 @@ runs:
     - name: Collect Terraform Outputs for ${{ inputs.region }} region
       shell: bash
       id: tf_output
+      working-directory: terraform
       run: |
           if [ ${{ inputs.region }} == "primary" ]; then
             echo "api_url=$(terraform output api_gateway_canonical_url)" >> $GITHUB_OUTPUT

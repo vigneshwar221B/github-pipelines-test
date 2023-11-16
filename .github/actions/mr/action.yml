@@ -2,65 +2,62 @@ name: deploy multi region setup
 description: deploys the multi region setup
 
 inputs:
-  region:
-    description: region
-    required: true
   env:
-    description: environment
+    description: "Environment"
     required: true
   aws_account_id:
-    description: account id for the aws account
+    description: "Account ID for the AWS account"
+    required: true
+  aws_region:
+    description: "AWS region"
     required: true
   teams_url:
-    description: url for teams messenger
+    description: "URL for Teams"
+    required: true
+  tf_workspace:
+    description: name of terraform workspace
     required: true
   provider_region:
-    description: "Provider Region"
+    description: "Provider region"
     required: true
   primary_region_url:
-    description: "Primary Region URL"
+    description: "URL for the primary region"
     required: true
   secondary_region_url:
-    description: "Secondary Region URL"
+    description: "URL for the secondary region"
     required: true
   hosted_zone_id:
     description: "Hosted Zone ID"
     required: true
   domain_name:
-    description: "Domain Name"
+    description: "Domain name"
     required: true
   environment:
     description: "Environment"
     required: true
   cognito_username:
-    description: "Cognito Username"
+    description: "Username for Cognito service account"
     required: true
   cognito_password:
-    description: "Cognito Password"
+    description: "Password for Cognito service account"
     required: true
   region_1_health_check_id:
-    description: "Region 1 Health Check ID"
+    description: "Health check ID for region 1"
     required: true
   region_2_health_check_id:
-    description: "Region 2 Health Check ID"
+    description: "Health check ID for region 2"
     required: true
   primary_region:
-    description: "Primary Region"
+    description: "Primary AWS region"
     required: true
   secondary_region:
-    description: "Secondary Region"
+    description: "Secondary AWS region"
     required: true
   primary_websocket_url:
-    description: "Primary Websocket URL"
+    description: "WebSocket URL for the primary region"
     required: true
   secondary_websocket_url:
-    description: "Secondary Websocket URL"
-    required: true
-  websocket_domain_name:
-    description: "Websocket Domain Name"
-    required: true
-  aws_region:
-    description: "AWS region for provider"
+    description: "WebSocket URL for the secondary region"
     required: true
 
 runs:
@@ -88,7 +85,7 @@ runs:
       with:
         apiToken: ${{ secrets.TF_API_TOKEN }}
         teamID: team-9oiEbg9n7LRqH8ch
-        terraformWorkspaceName: ${{ github.event.repository.name }}-${{ inputs.env }}-${{ inputs.region }}
+        terraformWorkspaceName: ${{ inputs.tf_workspace }}
         tfVarSet: varset-f2C3DJRZHGfvpwdR
         terraformDir: terraform/multi-region
     - name: Terraform Init for Multi region

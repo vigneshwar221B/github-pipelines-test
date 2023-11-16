@@ -8,27 +8,27 @@ env:
   e1: smth
 
 jobs:
-  ijob1:
-    runs-on: ubuntu-latest
-    environment: ${{inputs.env}}
-    outputs:
-      region1: ${{ steps.tf_output.outputs.dev_region }}
-      region2: ${{ steps.tf_output.outputs.prod_region }}
-    strategy:
-      matrix:
-        include:
-          - env: primary
-          - env: secondary
-    steps:
-      - uses: actions/checkout@v3
-      - name: custom action
-        id: tf_output
-        uses: ./.github/actions/test
-        with:
-          env: ${{ matrix.env }}
+  # ijob1:
+  #   runs-on: ubuntu-latest
+  #   environment: ${{inputs.env}}
+  #   outputs:
+  #     region1: ${{ steps.tf_output.outputs.dev_region }}
+  #     region2: ${{ steps.tf_output.outputs.prod_region }}
+  #   strategy:
+  #     matrix:
+  #       include:
+  #         - env: primary
+  #         - env: secondary
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - name: custom action
+  #       id: tf_output
+  #       uses: ./.github/actions/test
+  #       with:
+  #         env: ${{ matrix.env }}
 
   ijob2:
-    needs: ijob1
+    # needs: ijob1
     runs-on: ubuntu-latest
     steps:
       # - run: echo ${{needs.job1.outputs.region1}}
@@ -36,4 +36,5 @@ jobs:
       - run: echo ${{secrets.DT_URL}}
       - run: echo ${{ github.job }}
       - run: echo ${{ 'a' == 'b' && 'hi' || 'hello' }}
+      - run: echo ${{vars.temp}}
       - run: echo ${{ env.e1 }}
