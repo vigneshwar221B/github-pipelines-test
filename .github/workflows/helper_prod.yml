@@ -4,6 +4,8 @@ on:
       env:
         required: true
         type: string
+env:
+  e1: smth
 
 jobs:
   # job1:
