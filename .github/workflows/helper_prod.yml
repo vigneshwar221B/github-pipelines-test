@@ -17,8 +17,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - env: dev
-          - env: prod
+          - env: primary
+          - env: secondary
     steps:
       - uses: actions/checkout@v3
       - name: custom action
