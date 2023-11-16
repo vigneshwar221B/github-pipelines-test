@@ -1,5 +1,4 @@
 name: deploy infra
-
 description: deploys the base infra
 
 inputs:
