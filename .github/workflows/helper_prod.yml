@@ -36,5 +36,5 @@ jobs:
       - run: echo ${{secrets.DT_URL}}
       - run: echo ${{ github.job }}
       - run: echo ${{ 'a' == 'b' && 'hi' || 'hello' }}
-      - run: echo ${{vars.temp}}
+      - run: echo ${{vars.TEMP}}
       - run: echo ${{ env.e1 }}
