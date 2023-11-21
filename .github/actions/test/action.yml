@@ -7,6 +7,7 @@ runs:
     - name: set op
       id: tf_output
       shell: bash
-      run: echo "::set-output name=aws_region::${{ "\"us-east-1\""//\"/ }}"
-    - shell: bash
-      run: echo ${{ steps.tf_output.aws_region }}
+      run: |
+        echo ${{ github.event.repository.name }}
+        echo ${{ vars.TEMP }}
+
