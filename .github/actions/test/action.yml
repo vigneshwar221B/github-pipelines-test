@@ -9,5 +9,5 @@ runs:
       shell: bash
       run: |
         echo ${{ github.event.repository.name }}
-        echo ${{ vars.TEMP }}
+
 
