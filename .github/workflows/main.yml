@@ -8,6 +8,15 @@ env:
   e1: smth
 
 jobs:
+
+  job1:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: custom action
+        id: tf_output
+        uses: ./.github/actions/test
+
   # check:
   #   name: Check files in a specific folder
   #   outputs:
@@ -139,12 +148,12 @@ jobs:
   #   steps:
   #     - run: echo ${{matrix.env}}
 
-  job1:
+  # job1:
 
-    uses: ./.github/workflows/helper_prod.yml
-    secrets: inherit
-    with:
-      env: test1
+  #   uses: ./.github/workflows/helper_prod.yml
+  #   secrets: inherit
+  #   with:
+  #     env: test1
 
   # job2:
   #   # needs: job1
