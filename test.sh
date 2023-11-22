@@ -2,12 +2,8 @@
 
 # Your string variable
 environment="prod-eu"
+echo "new_dev_vadfversion: 1.2.3.4"
 
-# Check if the value is "prod" or "qa"
-if  [[ "$environment" == prod* ]] || [ "$environment" == "qa" ]; then
-    echo "Environment is prod/qa"
-elif [ "$environment" == "dev" ]; then
-    echo "Environment is dev"
-else
-    echo "Environment is not valid"
-fi
+echo "new_dev_version: 1.4.3.2"
+echo "dsv: 1243"
+echo "new_deadvsv_version: 1234"
