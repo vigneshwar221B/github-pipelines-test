@@ -8,6 +8,6 @@ runs:
       id: tf_output
       shell: bash
       run: |
-        echo ${{ github.event.repository.name == 'github-pipeline-test' && '-var-file=${{ github.event.repository.name' || -var--file=${{ github.event.repository.name'}}
+        echo ${{ github.event.repository.name == 'github-pipeline-test' && '-var-file=${{ github.event.repository.name }}' ||'-var-file=${{ github.event.repository.name }}' }}
 
 
