@@ -53,3 +53,4 @@ jobs:
             - env: secondary
       steps:
         - run: echo ${{inputs.env}}
+        - run: echo ${{matrix.env}}
