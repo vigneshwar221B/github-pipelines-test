@@ -40,7 +40,6 @@ jobs:
 
   rjob1:
     strategy:
-      max-parallel: 1
       matrix:
         target: [test1, test2]
     uses: ./.github/workflows/helper_prod.yml
