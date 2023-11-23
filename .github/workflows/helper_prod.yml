@@ -27,19 +27,29 @@ jobs:
   #       with:
   #         env: ${{ matrix.env }}
 
-  ijob2:
-    # needs: ijob1
-    runs-on: ubuntu-latest
-    steps:
-      # - run: echo ${{needs.job1.outputs.region1}}
-      # - run: echo ${{needs.job1.outputs.region2}}
-      # - run: echo ${{secrets.DT_URL}}
-      # - run: echo ${{ github.job }}
-      # - run: echo ${{ 'a' == 'b' && 'hi' || 'hello' }}
-      # - run: echo ${{vars.TEMP}}
-      # - run: echo ${{ env.e1 }}
-      - run: |
-          echo ${{ github.event.repository.name }}-${{ 'qa' }}-${{'qa' == 'qa' && 'secondary-region' || 'qa' == 'prod-na' && 'uw2' || 'secondary'}}
-          echo ${{ github.event.repository.name }}-${{ 'prod-na' }}-${{'prod-na' == 'qa' && 'secondary-region' || 'prod-na' == 'prod-na' && 'uw2' || 'secondary'}}
-          echo ${{ github.event.repository.name }}-${{ 'dev' }}-${{'dev' == 'qa' && 'secondary-region' || 'dev' == 'prod-na' && 'uw2' || 'secondary'}}
-          echo ${{ github.event.repository.name }}-${{ 'prod-eur' }}-${{'prod-eur' == 'qa' && 'secondary-region' || 'prod-eur' == 'prod-na' && 'uw2' || 'secondary'}}
+  # ijob2:
+  #   # needs: ijob1
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     # - run: echo ${{needs.job1.outputs.region1}}
+  #     # - run: echo ${{needs.job1.outputs.region2}}
+  #     # - run: echo ${{secrets.DT_URL}}
+  #     # - run: echo ${{ github.job }}
+  #     # - run: echo ${{ 'a' == 'b' && 'hi' || 'hello' }}
+  #     # - run: echo ${{vars.TEMP}}
+  #     # - run: echo ${{ env.e1 }}
+  #     - run: |
+  #         echo ${{ github.event.repository.name }}-${{ 'qa' }}-${{'qa' == 'qa' && 'secondary-region' || 'qa' == 'prod-na' && 'uw2' || 'secondary'}}
+  #         echo ${{ github.event.repository.name }}-${{ 'prod-na' }}-${{'prod-na' == 'qa' && 'secondary-region' || 'prod-na' == 'prod-na' && 'uw2' || 'secondary'}}
+  #         echo ${{ github.event.repository.name }}-${{ 'dev' }}-${{'dev' == 'qa' && 'secondary-region' || 'dev' == 'prod-na' && 'uw2' || 'secondary'}}
+  #         echo ${{ github.event.repository.name }}-${{ 'prod-eur' }}-${{'prod-eur' == 'qa' && 'secondary-region' || 'prod-eur' == 'prod-na' && 'uw2' || 'secondary'}}
+    job1:
+      runs-on: ubuntu-latest
+      environment: ${{inputs.env}}
+      strategy:
+        matrix:
+          include:
+            - env: primary
+            - env: secondary
+      steps:
+        - run: echo ${{inputs.env}}
