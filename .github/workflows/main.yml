@@ -38,14 +38,14 @@ jobs:
   #           echo "run_job=false" >> "$GITHUB_OUTPUT"
   #         fi
 
-  rjob1:
-    strategy:
-      matrix:
-        target: [test1, test2]
-    uses: ./.github/workflows/helper_prod.yml
-    secrets: inherit
-    with:
-      env: ${{matrix.target}}
+  # rjob1:
+  #   strategy:
+  #     matrix:
+  #       target: [test1, test2]
+  #   uses: ./.github/workflows/helper_prod.yml
+  #   secrets: inherit
+  #   with:
+  #     env: ${{matrix.target}}
       #env: test1
 
   # rjob2:
@@ -153,12 +153,11 @@ jobs:
   #   with:
   #     env: test2
 
-  # job1:
-  #   environment: test1
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - run: |
-  #         echo j1
+  job1:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo ${{ startsWith('prod-eur', 'prod') && 'a' || 'b'}}
 
   # job2:
   #   environment: test1
