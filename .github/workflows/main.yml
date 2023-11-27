@@ -141,11 +141,11 @@ jobs:
   #   steps:
   #     - run: echo ${{matrix.env}}
 
-  # job1:
-  #   uses: ./.github/workflows/helper_prod.yml
-  #   secrets: inherit
-  #   with:
-  #     env: test1
+  job1:
+    uses: ./.github/workflows/helper_prod.yml
+    secrets: inherit
+    with:
+      env: test1
 
   # job2:
   #   # needs: job1
@@ -154,11 +154,11 @@ jobs:
   #   with:
   #     env: test2
 
-  job1:
-    runs-on: ubuntu-latest
-    steps:
-      - run: |
-          echo ${{ env.e2 }}
+  # job1:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - run: |
+  #         echo ${{ env.e2 }}
 
   # job2:
   #   environment: test1

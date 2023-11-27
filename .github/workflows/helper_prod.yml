@@ -43,21 +43,29 @@ jobs:
   #         echo ${{ github.event.repository.name }}-${{ 'prod-na' }}-${{'prod-na' == 'qa' && 'secondary-region' || 'prod-na' == 'prod-na' && 'uw2' || 'secondary'}}
   #         echo ${{ github.event.repository.name }}-${{ 'dev' }}-${{'dev' == 'qa' && 'secondary-region' || 'dev' == 'prod-na' && 'uw2' || 'secondary'}}
   #         echo ${{ github.event.repository.name }}-${{ 'prod-eur' }}-${{'prod-eur' == 'qa' && 'secondary-region' || 'prod-eur' == 'prod-na' && 'uw2' || 'secondary'}}
+    # job1:
+    #   runs-on: ubuntu-latest
+    #   environment: ${{inputs.env}}
+    #   strategy:
+    #     matrix:
+    #       include:
+    #         - env: primary
+    #         - env: secondary
+    #   steps:
+    #     - run: echo ${{inputs.env}}
+    #     - run: echo ${{matrix.env}}
+        
     job1:
       runs-on: ubuntu-latest
       environment: ${{inputs.env}}
-      strategy:
-        matrix:
-          include:
-            - env: primary
-            - env: secondary
+
       steps:
         - run: echo ${{inputs.env}}
-        - run: echo ${{matrix.env}}
-        
+    
     job2:
       runs-on: ubuntu-latest
       needs: job1
+      environment: ${{inputs.env}}
 
       steps:
         - run: echo ${{inputs.env}}
