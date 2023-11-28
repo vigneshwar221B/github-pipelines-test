@@ -2,7 +2,6 @@ on:
   workflow_call:
     inputs:
       env:
-        required: true
         type: boolean
         default: true
 env:
