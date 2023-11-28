@@ -144,8 +144,8 @@ jobs:
   job1:
     uses: ./.github/workflows/helper_prod.yml
     secrets: inherit
-    # with:
-    #   env: false
+    with:
+      env: false
 
   # job2:
   #   # needs: job1
