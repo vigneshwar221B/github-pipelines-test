@@ -1,13 +1,18 @@
 name: deploy infra
 description: deploys the base infra
 
+inputs:
+  smth:
+    default: 'false'
+    description: edfgf
+
 runs:
   using: "composite"
   steps:
-    - name: set op
-      id: tf_output
-      shell: bash
-      run: |
-        echo ${{ github.event.repository.name == 'github-pipeline-test' && '-var-file=${{ github.event.repository.name }}' ||'-var-file=${{ github.event.repository.name }}' }}
-
-
+    - shell: bash
+      run: echo a
+    - shell: bash
+      if: ${{ inputs.smth == 'true' }}
+      run: echo b
+    - shell: bash
+      run: echo c

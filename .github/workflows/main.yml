@@ -94,21 +94,17 @@ jobs:
   #     - run: echo ${{needs.job1.outputs.region1}}
   #     - run: echo ${{needs.job1.outputs.region2}}
 
-  # base_infra:
-  #   needs: check
-  #   if: needs.check.outputs.run_job == 'true'
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: checkout code
-  #       uses: actions/checkout@v3
+  base_infra:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v3
 
-  #     - name: custom action
-  #       uses: ./.github/actions/test
-  #       with:
-  #         someVar: helo
+      - name: custom action
+        uses: ./.github/actions/test
+        # with:
+        #   smth: true
 
-  #     - name: Print Message
-  #       run: echo hello
 
   # other_jobs:
   #   needs: base_infra
@@ -141,11 +137,11 @@ jobs:
   #   steps:
   #     - run: echo ${{matrix.env}}
 
-  job1:
-    uses: ./.github/workflows/helper_prod.yml
-    secrets: inherit
-    with:
-      env: false
+  # job1:
+  #   uses: ./.github/workflows/helper_prod.yml
+  #   secrets: inherit
+  #   with:
+  #     env: false
 
   # job2:
   #   # needs: job1
