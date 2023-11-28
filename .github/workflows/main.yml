@@ -102,8 +102,8 @@ jobs:
 
       - name: custom action
         uses: ./.github/actions/test
-        # with:
-        #   smth: true
+        with:
+          smth: 'true'
 
 
   # other_jobs:
