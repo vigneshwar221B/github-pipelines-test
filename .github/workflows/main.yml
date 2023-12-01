@@ -9,6 +9,17 @@ env:
   e2: ${{ startsWith('prod-eur', 'prod') && 'a' || 'b'}}
 
 jobs:
+  j1:
+    environment: test1
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo ${{secrets}}
+  
+  j2:
+    runs-on: ubuntu-latest
+    needs: j1
+    steps:
+      - run: echo ${{secrets}}
 
   # check:
   #   name: Check files in a specific folder
@@ -94,16 +105,16 @@ jobs:
   #     - run: echo ${{needs.job1.outputs.region1}}
   #     - run: echo ${{needs.job1.outputs.region2}}
 
-  base_infra:
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout code
-        uses: actions/checkout@v3
+  # base_infra:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: checkout code
+  #       uses: actions/checkout@v3
 
-      - name: custom action
-        uses: ./.github/actions/test
-        with:
-          smth: 'true'
+  #     - name: custom action
+  #       uses: ./.github/actions/test
+  #       with:
+  #         smth: 'true'
 
 
   # other_jobs:
