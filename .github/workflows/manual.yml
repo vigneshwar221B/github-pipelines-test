@@ -1,10 +1,24 @@
 name: manu trigger
 
 on:
-  - workflow_dispatch
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'environment'
+        required: true
+        type: choice
+        options:
+        - prod-na
+        - prod-eur
+        - prod-apse
+
+env:
+  ACCOUNT_CONFIGS: '{"prod-na": "123", "prod-eur": "231", "prod-apse": "321"}'
 
 jobs:
   job1:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "hello"
+      - run: |
+          echo ${{ fromJSON(env.ACCOUNT_CONFIGS)[inputs.environment] }}
+      
