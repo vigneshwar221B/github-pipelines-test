@@ -1,4 +1,4 @@
-name: manu trigger
+name: manual trigger
 
 on:
   workflow_dispatch:
@@ -13,7 +13,7 @@ on:
         - prod-apse
 
 env:
-  ACCOUNT_CONFIGS: '{"prod-na": "123", "prod-eur": "231", "prod-apse": "321"}'
+  ACCOUNT_CONFIGS: '{"prod-na": "${{vars.TEMP}}1", "prod-eur": "${{vars.TEMP}}2", "prod-apse": "${{secrets.SE1}}"}'
 
 jobs:
   job1:
