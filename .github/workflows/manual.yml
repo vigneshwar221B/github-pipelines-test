@@ -1,0 +1,10 @@
+name: manu trigger
+
+on:
+  - workflow_dispatch
+
+jobs:
+  job1:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "hello"

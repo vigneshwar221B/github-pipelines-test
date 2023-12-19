@@ -9,17 +9,17 @@ env:
   e2: ${{ startsWith('prod-eur', 'prod') && 'a' || 'b'}}
 
 jobs:
-  j1:
-    environment: test1
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo ${{secrets.smh}}
+  # j1:
+  #   environment: test1
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - run: echo ${{secrets.smh}}
   
-  j2:
-    runs-on: ubuntu-latest
-    needs: j1
-    steps:
-      - run: echo ${{secrets.smh}}
+  # j2:
+  #   runs-on: ubuntu-latest
+  #   needs: j1
+  #   steps:
+  #     - run: echo ${{secrets.smh}}
 
   # check:
   #   name: Check files in a specific folder
@@ -50,15 +50,10 @@ jobs:
   #           echo "run_job=false" >> "$GITHUB_OUTPUT"
   #         fi
 
-  # rjob1:
-  #   strategy:
-  #     matrix:
-  #       target: [test1, test2]
-  #   uses: ./.github/workflows/helper_prod.yml
-  #   secrets: inherit
-  #   with:
-  #     env: ${{matrix.target}}
-      #env: test1
+  rjob1:
+    uses: ./.github/workflows/helper_prod.yml
+    secrets: inherit
+    
 
   # rjob2:
   #   # strategy:
