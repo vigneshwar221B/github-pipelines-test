@@ -1,9 +1,9 @@
 on:
-  workflow_call:
-    inputs:
-      smth:
-        type: boolean
-        default: true
+  - workflow_call
+    # inputs:
+    #   smth:
+    #     type: boolean
+    #     default: true
 env:
   e1: smth
 
@@ -60,8 +60,7 @@ jobs:
 
       steps:
         - run: echo a
-        - if: ${{inputs.env}}
-          run: echo b
+        - run: echo b
         - run: echo c
     
 

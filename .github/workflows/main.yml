@@ -51,7 +51,7 @@ jobs:
   #         fi
 
   rjob1:
-    uses: ./.github/workflows/helper_prod.yml
+    uses: ${{vars.ENABLE_BG == 'true' && './.github/workflows/helper_prod.yml'}}
     secrets: inherit
     
 
