@@ -1,0 +1,28 @@
+name: Python Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  run-python-script:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.10' 
+
+    - name: Set Environment Variables
+      id: out
+      run: |
+        echo "export MY_VAR=abcd" >> $GITHUB_ENV
+
+    - name: Run Python Script
+      run: |
+        python scripts/test.py
+      env:
+        MY_VAR: ${{ steps.out.outputs.MY_VAR }}
+
