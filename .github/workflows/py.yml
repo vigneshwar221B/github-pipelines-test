@@ -18,7 +18,7 @@ jobs:
     - name: Set Environment Variables
       id: out
       run: |
-        echo "MY_VAR=abcd" >> $GITHUB_ENV
+        echo "MY_VAR=abcd" >> $GITHUB_OUTPUT
 
     - name: Run Python Script
       run: |
