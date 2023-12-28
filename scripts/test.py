@@ -1,7 +1,15 @@
 import json
+import os
 
 traffic_policy_file = "./templates/r53-weighted-policy.json"
 redirect_region = "secondary"
+
+# Get the list of files and directories in the current directory
+files_and_directories = os.listdir()
+
+# Print the list
+for item in files_and_directories:
+    print(item)
 
 def load_traffic_policy(policy_file, primary_endpoint, secondary_endpoint):
   #read the json file
