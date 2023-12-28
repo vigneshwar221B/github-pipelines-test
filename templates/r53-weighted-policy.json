@@ -1,0 +1,32 @@
+{
+  "AWSPolicyFormatVersion": "2015-10-01",
+  "RecordType": "CNAME",
+  "Endpoints": {
+    "primary-endpoint": {
+      "Type": "value",
+      "Value": "<primary-endpoint>"
+    },
+    "secondary-endpoint": {
+      "Type": "value",
+      "Value": "<secondary-endpoint>"
+    }
+  },
+  "Rules": {
+    "weighted-rule": {
+      "RuleType": "weighted",
+      "Items": [
+        {
+          "EndpointReference": "primary-endpoint",
+          "Weight": "0",
+          "EvaluateTargetHealth": "false"
+        },
+        {
+          "EndpointReference": "secondary-endpoint",
+          "Weight": "100",
+          "EvaluateTargetHealth": "false"
+        }
+      ]
+    }
+  },
+  "StartRule": "weighted-rule"
+}

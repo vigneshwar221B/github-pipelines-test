@@ -1,32 +1,30 @@
-- name: Set Up Terraform Workspace for secondary region
-        uses: sorenson-eng/shared-github-actions/create-tf-cloud-workspace@main
+test_api_secondary:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    needs: [deploy_primary, deploy_secondary]
+    environment: ${{ startsWith(inputs.env, 'prod') && 'prod' || inputs.env}}
+    steps:
+      - uses: actions/checkout@v3
+      - name: test feature api
+        uses: ./.github/actions/test_api
         with:
-          apiToken: ${{ secrets.TF_API_TOKEN }}
-          teamID: team-9oiEbg9n7LRqH8ch
-          terraformWorkspaceName: ${{ github.event.repository.name }}-qa-secondary-region
-          tfVarSet: varset-f2C3DJRZHGfvpwdR
-      - name: Terraform Init on secondary region
-        id: init_secondary_region
-        run: terraform init
-      - name: Terraform Plan on secondary region
-        id: plan_secondary_region
-        run: terraform plan -var-file=qa-secondary.tfvars
-        env:
-          TF_VAR_aws_account_id: '${{ vars.QA_AWS_ACCOUNT_ID}}'
-          TF_VAR_cognito_username: ${{ secrets.COGNITO_SERVICE_ACCOUNT_USERNAME}}
-          TF_VAR_cognito_password: ${{ secrets.COGNITO_SERVICE_ACCOUNT_PASSWORD}}
-      - name: Terraform Apply on secondary region
-        id: apply_secondary_region
-        run: terraform apply -var-file=qa-secondary.tfvars --auto-approve
-        env:
-          TF_VAR_aws_account_id: '${{ vars.QA_AWS_ACCOUNT_ID}}'
-          TF_VAR_cognito_username: ${{ secrets.COGNITO_SERVICE_ACCOUNT_USERNAME}}
-          TF_VAR_cognito_password: ${{ secrets.COGNITO_SERVICE_ACCOUNT_PASSWORD}}
-      - name: Collect Terraform Outputs for secondary region
-        id: tf_output_secondary_region
-        run: |
-          echo "secondary_region_url=$(terraform output --raw custom_domain_url)" >> $GITHUB_OUTPUT
-          echo "hosted_zone_id=$(terraform output --raw hosted_zone_id)" >> $GITHUB_OUTPUT
-          echo "domain_name=$(terraform output --raw domain_name)" >> $GITHUB_OUTPUT
-          echo "environment=$(terraform output --raw environment)" >> $GITHUB_OUTPUT
-          echo "us_west_2_synthetic_health_check_id=$(terraform output --raw synthetic_health_check_id)" >> $GITHUB_OUTPUT
+          aws_region: ${{ needs.deploy_primary.outputs.aws_region }}
+          aws_account_id: ${{ needs.deploy_secondary.outputs.aws_account_id }}
+
+          teams_url: ${{ env.TEAMS_URL }}
+          MSTEAMS_WEBHOOK: ${{secrets.MSTEAMS_WEBHOOK}}
+          cognito_service_account_username: ${{ secrets.COGNITO_SERVICE_ACCOUNT_USERNAME }}
+          cognito_service_account_password: ${{ secrets.COGNITO_SERVICE_ACCOUNT_PASSWORD }}
+
+          switchboard_url: ${{ needs.deploy_secondary.outputs.secondary_region_invoke_url }}
+          cognito_details_ssm_name: ${{ needs.deploy_primary.outputs.cognito_details_ssm_name }}
+          api_automation_phone_number_ssm_name: ${{ needs.deploy_primary.outputs.api_automation_phone_number_ssm_name }}
+          dtmf_automation_test_sma_lambda_handler_name: ${{ needs.deploy_primary.outputs.dtmf_test_sma_lambda_handler_name }}
+          sma_handler_lambda_name: ${{ needs.deploy_primary.outputs.sma_handler_lambda_name }}
+          sip_rule_ssm_param: ${{ needs.deploy_primary.outputs.sip_rule_ssm_param }}
+          dtmf_automation_dynamodb_name: ${{ needs.deploy_primary.outputs.dtmf_automation_dynamodb_name }}
+          switchboard_dynamodb_name: ${{ needs.deploy_primary.outputs.switchboard_dynamodb_name }}
+          english_fast_vrs_number: ${{ needs.deploy_primary.outputs.english_fast_vrs_number }}
+          language_selection_digit: 'B'
