@@ -1,6 +1,6 @@
 import json
 
-traffic_policy_file = "../templates/r53-weighted-policy.json"
+traffic_policy_file = "./templates/r53-weighted-policy.json"
 redirect_region = "secondary"
 
 def load_traffic_policy(policy_file, primary_endpoint, secondary_endpoint):
