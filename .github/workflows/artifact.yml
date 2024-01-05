@@ -11,18 +11,12 @@ jobs:
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
-
-    - name: Upload Py File as Artifact
-      run: |
-        mkdir -p artifacts
-        cp scripts/your_python_script.py artifacts/
-      working-directory: ${{ github.workspace }}
     
     - name: Archive Artifact
       uses: actions/upload-artifact@v2
       with:
         name: python-script
-        path: artifacts
+        path: scripts/test.py
 
   download_artifact:
     runs-on: ubuntu-latest
@@ -32,7 +26,7 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: python-script
-        path: artifacts
+        path: scripts
 
     - name: Display Py File Content
       run: |
