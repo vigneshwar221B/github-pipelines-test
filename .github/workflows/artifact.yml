@@ -9,11 +9,9 @@ jobs:
   upload_artifact:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v2
+    -  uses: actions/checkout@v2
     
-    - name: Archive Artifact
-      uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v2
       with:
         name: python-script
         path: scripts/test.py
@@ -21,9 +19,9 @@ jobs:
   download_artifact:
     runs-on: ubuntu-latest
     needs: upload_artifact
+
     steps:
-    - name: Download Py File Artifact
-      uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v2
       with:
         name: python-script
         path: scripts
