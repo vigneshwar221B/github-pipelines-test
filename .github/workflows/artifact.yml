@@ -1,0 +1,39 @@
+name: PyFilePipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  upload_artifact:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Upload Py File as Artifact
+      run: |
+        mkdir -p artifacts
+        cp scripts/your_python_script.py artifacts/
+      working-directory: ${{ github.workspace }}
+    
+    - name: Archive Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: python-script
+        path: artifacts
+
+  download_artifact:
+    runs-on: ubuntu-latest
+    needs: upload_artifact
+    steps:
+    - name: Download Py File Artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: python-script
+        path: artifacts
+
+    - name: Display Py File Content
+      run: |
+        cat artifacts/your_python_script.py
