@@ -28,6 +28,3 @@ jobs:
         name: python-script
         path: scripts
 
-    - name: Display Py File Content
-      run: |
-        cat artifacts/your_python_script.py
