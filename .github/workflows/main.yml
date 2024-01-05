@@ -173,7 +173,6 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: smth
-          path: scripts
 
   # job2:
   #   environment: test1
