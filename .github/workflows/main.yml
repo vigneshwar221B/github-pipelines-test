@@ -157,12 +157,18 @@ jobs:
   #     env: test2
 
   job1:
+    defaults:
+      run:
+        working-directory: terraform
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - run: |
           echo ${{secrets.ABC}} > abc.txt
-      - run: cat abc.txt
+      - uses: actions/upload-artifact@v3
+        with:
+          name: env-file
+          path: terraform/abc.txt
       
   # job2:
   #   runs-on: ubuntu-latest
