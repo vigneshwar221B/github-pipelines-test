@@ -160,19 +160,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/upload-artifact@v3
-        with:
-          name: smth
-          path: scripts/test.py
+      - run: |
+          echo ${{secrets.ABC}} > abc.txt
+      - run: cat abc.txt
       
-  job2:
-    runs-on: ubuntu-latest
-    needs: job1
-    steps:
-      - uses: actions/download-artifact@v3
-        with:
-          name: smth
-          path: scripts
+  # job2:
+  #   runs-on: ubuntu-latest
+  #   needs: job1
+  #   steps:
+  #     - uses: actions/download-artifact@v3
+  #       with:
+  #         name: smth
+  #         path: scripts
 
   # job2:
   #   environment: test1
